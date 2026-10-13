@@ -57,3 +57,4 @@ The run's logs are saved to the `ci-logs` branch (`check/` and `testflight/`), a
 - **"create the app in App Store Connect first"**: do step 2, then run it again.
 - **Key turned away (401/403)**: the key was revoked or doesn't have the Admin role; make a new one (step 1).
 - **Build number already used**: run the workflow again; each run uses a higher number.
+- **"The job was not acquired by Runner"**: GitHub had no Mac free. Run it again, and pick **macos-15-intel** under "Which GitHub Mac" if it keeps happening.

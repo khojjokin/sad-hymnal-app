@@ -15,6 +15,12 @@ on:
       - README.md
       - TESTFLIGHT.md
   workflow_dispatch:
+    inputs:
+      mac:
+        description: "Which GitHub Mac to build on (Intel when the Apple-chip Macs are busy)"
+        type: choice
+        default: macos-15
+        options: [macos-15, macos-26, macos-15-intel]
 
 permissions:
   contents: write
@@ -46,7 +52,7 @@ jobs:
 
   testflight:
     needs: check
-    runs-on: macos-15
+    runs-on: ${{ inputs.mac || 'macos-15' }}
     timeout-minutes: 90
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
