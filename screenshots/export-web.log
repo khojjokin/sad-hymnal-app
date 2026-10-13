@@ -1,8 +1,10 @@
 Starting Metro Bundler
-Web node_modules/expo-router/entry.js ▓▓▓▓▓░░░░░░░░░░░ 36.0% (126/308)
-Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 48.1% (427/616)
-Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 74.5% (677/796)
-Web Bundled 13503ms node_modules/expo-router/entry.js (974 modules)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 49.0% ( 57/229)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 49.0% (238/447)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 53.4% (459/641)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 72.0% (622/738)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 87.9% (810/864)
+Web Bundled 19030ms node_modules/expo-router/entry.js (974 modules)
 
 › Assets (32):
 assets/fonts/Newsreader-Bold.dff1dc07d4aaec722451042ab3f5eaf4.ttf (119 kB)
@@ -33,7 +35,7 @@ node_modules/expo-router/assets/sitemap.412dd9275b6b48ad28f5e3d81bb1f626.png (46
 node_modules/expo-router/assets/unmatched.20e71bdf79e3a97bf55fd9e164041578.png (4.75 kB)
 
 › web bundles (1):
-_expo/static/js/web/entry-e0c302f543982ff6102f286a4f03a258.js (2.15 MB)
+_expo/static/js/web/entry-2302fd689f9818e163a4e4fbdd108fd7.js (2.15 MB)
 
 › Files (3):
 favicon.ico (14.5 kB)
