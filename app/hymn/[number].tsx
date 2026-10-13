@@ -12,7 +12,7 @@ import { ColourSheet } from '../../src/components/ColourSheet';
 import { Icon } from '../../src/components/Icon';
 import { NumberSheet } from '../../src/components/NumberSheet';
 import { CARD_H, CARD_W, ShareCard } from '../../src/components/ShareCard';
-import { SERIF, Text } from '../../src/components/Text';
+import { serif, Text } from '../../src/components/Text';
 import { IconButton, RoundButton, Sheet, SheetRow, toast, useBarStyle } from '../../src/components/ui';
 import { useRouter } from 'expo-router';
 import { tap } from '../../src/lib/haptics';
@@ -53,7 +53,7 @@ export default function HymnPage() {
   const starred = prefs.favourites.includes(n);
   const size = prefs.textSize;
   const lineHeight = Math.round(size * SPACING[prefs.spacing]);
-  const face = prefs.font === 'serif' ? { fontFamily: SERIF } : null;
+  const words = prefs.font === 'serif';
 
   useEffect(() => {
     noteOpened(n);
@@ -148,45 +148,51 @@ export default function HymnPage() {
       <View style={{ flex: 1, paddingTop: insets.top }}>
         <View style={{ height: 56, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 2 }}>
           <RoundButton name="back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
-          <Pressable onPress={() => setKeypad(true)} accessibilityRole="button" accessibilityLabel={`Hymn ${n}. Go to another number`} style={({ pressed }) => ({ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4, opacity: pressed ? 0.6 : 1 })}>
-            <Text numberOfLines={1} accessibilityRole="header" style={{ color: C.fg, fontSize: 20.5, fontWeight: '700' }}>
-              Hymn {n}
-            </Text>
-            <Icon name="down" size={15} color={C.fg2} weight={2.4} />
-          </Pressable>
+          <View style={{ flex: 1 }} />
           <IconButton name="heart" label={starred ? 'Remove from favourites' : 'Add to favourites'} fill={starred} color={starred ? C.like : C.fg} onPress={heart} />
           <IconButton name="share" label="Share" onPress={() => setSharing(-1)} />
           <IconButton name="palette" label="Hymn background" onPress={() => setPalette(true)} />
         </View>
 
         <ScrollView ref={scroll} contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}>
-          <View style={{ paddingHorizontal: 20, paddingTop: 6, paddingBottom: 14 }}>
-            {hymn.section ? <Text style={{ color: C.fg3, fontSize: 12.5, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 10 }}>{hymn.section}</Text> : null}
-            <Text accessibilityRole="header" style={{ color: C.fg, fontSize: 27, fontWeight: '800', lineHeight: 33 }}>{hymn.title}</Text>
-            {hymn.author ? <Text style={{ color: C.fg2, fontSize: 15, marginTop: 6 }}>{hymn.author}</Text> : null}
+          <View style={{ paddingHorizontal: 22, paddingTop: 2, paddingBottom: 22 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+              {/* The hymn's number, as large as the hymn board at the front of the church. Tap it to go to another. */}
+              <Pressable onPress={() => setKeypad(true)} accessibilityRole="button" accessibilityLabel={`Hymn ${n}. Go to another number`} hitSlop={6} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'flex-end', gap: 4, opacity: pressed ? 0.6 : 1 })}>
+                <Text accessibilityRole="header" style={[serif(600), { color: C.accent2, fontSize: 76, lineHeight: 80, letterSpacing: -2, fontVariant: ['lining-nums', 'tabular-nums'] }]}>{n}</Text>
+                <View style={{ paddingBottom: 14 }}>
+                  <Icon name="down" size={16} color={C.fg3} weight={2.4} />
+                </View>
+              </Pressable>
+              {verses.length ? (
+                <View style={{ flexDirection: 'row', gap: 8, paddingBottom: 12 }}>
+                  {[
+                    { label: 'A−', a11y: 'Smaller text', delta: -2, off: size <= TEXT_MIN },
+                    { label: 'A+', a11y: 'Larger text', delta: 2, off: size >= TEXT_MAX },
+                  ].map((b) => (
+                    <Pressable key={b.label} onPress={() => setSize(size + b.delta)} disabled={b.off} accessibilityRole="button" accessibilityLabel={b.a11y} accessibilityState={{ disabled: b.off }} style={({ pressed }) => ({ height: 34, minWidth: 46, paddingHorizontal: 12, borderRadius: 17, backgroundColor: pressed ? C.surface2 : C.surface, alignItems: 'center', justifyContent: 'center', opacity: b.off ? 0.4 : 1 })}>
+                      <Text style={{ color: C.fg, fontSize: 14, fontWeight: '600' }}>{b.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+            {hymn.section ? <Text style={{ color: C.fg3, fontSize: 13.5, fontWeight: '500', marginTop: 12 }}>{hymn.section}</Text> : null}
+            <Text style={[serif(600), { color: C.fg, fontSize: 31, lineHeight: 35, letterSpacing: -0.3, marginTop: 4 }]}>{hymn.title}</Text>
+            {hymn.author ? <Text style={[serif('italic'), { color: C.fg2, fontSize: 17, lineHeight: 22, marginTop: 6 }]}>{hymn.author}</Text> : null}
           </View>
 
           {verses.length ? (
             <>
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingHorizontal: 20, paddingBottom: 12 }}>
-                {[
-                  { label: 'A−', a11y: 'Smaller text', delta: -2, off: size <= TEXT_MIN },
-                  { label: 'A+', a11y: 'Larger text', delta: 2, off: size >= TEXT_MAX },
-                ].map((b) => (
-                  <Pressable key={b.label} onPress={() => setSize(size + b.delta)} disabled={b.off} accessibilityRole="button" accessibilityLabel={b.a11y} accessibilityState={{ disabled: b.off }} style={({ pressed }) => ({ height: 32, paddingHorizontal: 14, borderRadius: 16, backgroundColor: pressed ? C.surface2 : C.surface, justifyContent: 'center', opacity: b.off ? 0.4 : 1 })}>
-                    <Text style={{ color: C.fg, fontSize: 13.5, fontWeight: '600' }}>{b.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              <View style={{ paddingHorizontal: 20, gap: Math.round(size * 1.1) }}>
+              <View style={{ paddingHorizontal: 22, gap: Math.round(size * 1.1) }}>
                 {verses.map((v, i) => {
                   const refrain = v.kind === 'refrain';
                   return (
                     // A long press shares just this verse.
                     <Pressable key={i} onLongPress={() => { tap('select'); setSharing(i); }} delayLongPress={350} accessibilityHint="Long press to share this verse" style={refrain ? { paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: C.accent2 } : null}>
-                      {refrain ? <Text style={{ color: C.accent2, fontSize: Math.round(size * 0.66), fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase', marginBottom: 4 }}>Refrain</Text> : null}
-                      <Text style={[{ color: C.fg, fontSize: size, lineHeight, fontStyle: refrain ? 'italic' : 'normal' }, face]}>
-                        {!refrain && prefs.verseNumbers ? <Text style={{ color: C.accent2, fontSize: Math.round(size * 0.72), fontWeight: '700' }}>{v.number}  </Text> : null}
+                      {refrain ? <Text style={{ color: C.accent2, fontSize: 13, fontWeight: '600', marginBottom: 2 }}>Refrain</Text> : null}
+                      <Text style={[{ color: C.fg, fontSize: size, lineHeight }, words ? serif(refrain ? 'italic' : 400) : { fontStyle: refrain ? 'italic' : 'normal' }]}>
+                        {!refrain && prefs.verseNumbers ? <Text style={{ color: C.accent2, fontSize: Math.round(size * 0.66), fontWeight: '700', fontStyle: 'normal' }}>{v.number}{'  '}</Text> : null}
                         {v.text}
                       </Text>
                     </Pressable>
@@ -195,8 +201,8 @@ export default function HymnPage() {
               </View>
             </>
           ) : (
-            <View style={{ paddingHorizontal: 20, gap: 6 }}>
-              <Text style={{ color: C.fg2, fontSize: 15.5, lineHeight: 22 }}>The words of this hymn are still under copyright, so they aren't in the app. You'll find them in the printed hymnal at number {n}.</Text>
+            <View style={{ paddingHorizontal: 22, gap: 6 }}>
+              <Text style={[serif(400), { color: C.fg2, fontSize: 18, lineHeight: 27 }]}>The words of this hymn are still under copyright, so they aren't in the app. You'll find them in the printed hymnal at number {n}.</Text>
               <Pressable onPress={lookUp} accessibilityRole="link" accessibilityLabel="See this hymn on Hymnary.org" style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start', paddingVertical: 10, opacity: pressed ? 0.6 : 1 })}>
                 <Icon name="globe" size={20} color={C.accent2} weight={2} />
                 <Text style={{ color: C.accent2, fontSize: 15.5, fontWeight: '700' }}>See it on Hymnary.org</Text>
@@ -204,7 +210,7 @@ export default function HymnPage() {
             </View>
           )}
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 26 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 22, paddingTop: 30 }}>
             {step(-1)}
             {step(1)}
           </View>

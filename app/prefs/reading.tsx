@@ -3,7 +3,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { useHymnLook } from '../../src/components/Backdrop';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Band, ChoiceRow, SettingsLabel, SettingsRow } from '../../src/components/Settings';
-import { SERIF, Text } from '../../src/components/Text';
+import { serif, Text } from '../../src/components/Text';
 import { Screen, ScreenHeader } from '../../src/components/ui';
 import { tap } from '../../src/lib/haptics';
 import { setPrefs, TEXT_MAX, TEXT_MIN, usePrefs, type Spacing } from '../../src/lib/prefs';
@@ -16,7 +16,7 @@ export default function Reading() {
   const prefs = usePrefs();
   const look = useHymnLook(true);
   const size = prefs.textSize;
-  const face = prefs.font === 'serif' ? { fontFamily: SERIF } : null;
+  const face = prefs.font === 'serif' ? serif(400) : null;
   const setSize = (n: number) => {
     tap('select');
     setPrefs({ textSize: Math.min(TEXT_MAX, Math.max(TEXT_MIN, n)) });
@@ -64,8 +64,8 @@ export default function Reading() {
 
         <Band />
         <SettingsLabel>Font</SettingsLabel>
-        <ChoiceRow title="Outfit" sub="The app's own, clean and modern" on={prefs.font === 'app'} onPress={() => setPrefs({ font: 'app' })} />
-        <ChoiceRow title="Serif" sub="Like a printed hymnal" on={prefs.font === 'serif'} onPress={() => setPrefs({ font: 'serif' })} />
+        <ChoiceRow title="Plus Jakarta Sans" sub="Clean and modern" on={prefs.font === 'app'} onPress={() => setPrefs({ font: 'app' })} />
+        <ChoiceRow title="Newsreader" sub="A serif, like a printed hymnal" on={prefs.font === 'serif'} onPress={() => setPrefs({ font: 'serif' })} />
 
         <Band />
         <SettingsLabel>Line spacing</SettingsLabel>

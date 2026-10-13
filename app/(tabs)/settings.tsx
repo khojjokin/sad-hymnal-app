@@ -38,7 +38,7 @@ export default function Settings() {
       label: 'How hymns look',
       rows: [
         { id: 'bg', icon: 'palette', title: 'Hymn background', value: colourById(prefs.hymnColour)?.name ?? 'Default', words: 'colour color wallpaper theme', onPress: () => router.push('/prefs/background') },
-        { id: 'reading', icon: 'font', title: 'Text and reading', value: `${prefs.textSize} pt · ${prefs.font === 'serif' ? 'Serif' : 'Outfit'}`, words: 'size font serif spacing verse numbers refrain', onPress: () => router.push('/prefs/reading') },
+        { id: 'reading', icon: 'font', title: 'Text and reading', value: `${prefs.textSize} pt, ${prefs.font === 'serif' ? 'serif' : 'sans'}`, words: 'size font serif spacing verse numbers refrain', onPress: () => router.push('/prefs/reading') },
       ],
     },
     {
@@ -100,7 +100,7 @@ export default function Settings() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ color: C.fg, fontSize: 17, fontWeight: '700' }}>SDA Hymnal</Text>
-                <Text style={{ color: C.fg2, fontSize: 13.5, marginTop: 2 }}>{HYMN_COUNT} hymns · works offline</Text>
+                <Text style={{ color: C.fg2, fontSize: 13.5, marginTop: 2 }}>{HYMN_COUNT} hymns, works offline</Text>
               </View>
               <Icon name="right" size={17} color={C.fg2} weight={2} />
             </Pressable>

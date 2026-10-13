@@ -4,7 +4,7 @@ import { HYMN_COUNT, hymnByNumber } from '../lib/hymnal';
 import { tap } from '../lib/haptics';
 import { C } from '../lib/theme';
 import { Icon } from './Icon';
-import { Text } from './Text';
+import { serif, Text } from './Text';
 import { Button, Sheet } from './ui';
 
 /*
@@ -36,14 +36,14 @@ export function NumberSheet({ visible, onClose, onOpen }: { visible: boolean; on
     <Sheet visible={visible} onClose={onClose} title="Go to hymn">
       <View style={{ paddingHorizontal: 24, gap: 14 }}>
         <View style={{ alignItems: 'center', minHeight: 86 }}>
-          <Text style={{ color: digits ? C.fg : C.fg3, fontSize: 48, fontWeight: '800', fontVariant: ['tabular-nums'], letterSpacing: 2 }}>{digits || '—'}</Text>
-          <Text numberOfLines={1} style={{ color: hymn ? C.fg2 : C.fg3, fontSize: 15.5, marginTop: 2 }}>{hymn ? hymn.title : `1 to ${HYMN_COUNT}`}</Text>
+          <Text style={[serif(600), { color: digits ? C.accent2 : C.fg3, fontSize: 64, lineHeight: 70, fontVariant: ['tabular-nums', 'lining-nums'], letterSpacing: -1 }]}>{digits || '—'}</Text>
+          <Text numberOfLines={1} style={[serif(hymn ? 'italic' : 400), { color: hymn ? C.fg : C.fg3, fontSize: 18, marginTop: 2 }]}>{hymn ? hymn.title : `1 to ${HYMN_COUNT}`}</Text>
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
           {keys.map((k, i) =>
             k ? (
               <Pressable key={i} onPress={() => press(k)} accessibilityRole="button" accessibilityLabel={k === 'del' ? 'Delete' : k} style={({ pressed }) => ({ width: '31.5%', height: 58, borderRadius: 16, backgroundColor: pressed ? C.surface2 : C.surface, alignItems: 'center', justifyContent: 'center' })}>
-                {k === 'del' ? <Icon name="back" size={24} color={C.fg} weight={2.2} /> : <Text style={{ color: C.fg, fontSize: 25, fontWeight: '600' }}>{k}</Text>}
+                {k === 'del' ? <Icon name="back" size={24} color={C.fg} weight={2.2} /> : <Text style={[serif(500), { color: C.fg, fontSize: 28 }]}>{k}</Text>}
               </Pressable>
             ) : (
               <View key={i} style={{ width: '31.5%', height: 58 }} />

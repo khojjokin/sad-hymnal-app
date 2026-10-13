@@ -4,15 +4,15 @@ import { useRouter } from 'expo-router';
 import type { Hymn } from '../lib/hymnal';
 import { C } from '../lib/theme';
 import { Icon } from './Icon';
-import { Text } from './Text';
+import { serif, Text } from './Text';
 
 /** One hymn in a list, as on the SDA app's Hymnal: its number, then its title. `sub` adds a second line. */
 export const HymnLine = React.memo(function HymnLine({ hymn, onOpen, sub, starred }: { hymn: Hymn; onOpen: (n: number) => void; sub?: string; starred?: boolean }) {
   return (
     <Pressable onPress={() => onOpen(hymn.number)} accessibilityRole="button" accessibilityLabel={`Hymn ${hymn.number}, ${hymn.title}`} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: sub ? 60 : 50, backgroundColor: pressed ? C.press : 'transparent' })}>
-      <Text style={{ width: 40, textAlign: 'right', color: C.fg2, fontSize: 15.5, fontWeight: '500', fontVariant: ['tabular-nums'] }}>{hymn.number}</Text>
+      <Text style={[serif(500), { width: 42, textAlign: 'right', color: C.fg2, fontSize: 19, fontVariant: ['tabular-nums', 'lining-nums'] }]}>{hymn.number}</Text>
       <View style={{ flex: 1 }}>
-        <Text numberOfLines={1} style={{ color: C.fg, fontSize: 17, fontWeight: '500' }}>{hymn.title}</Text>
+        <Text numberOfLines={1} style={{ color: C.fg, fontSize: 16.5, fontWeight: '500' }}>{hymn.title}</Text>
         {sub ? <Text numberOfLines={1} style={{ color: C.fg2, fontSize: 13.5, marginTop: 1 }}>{sub}</Text> : null}
       </View>
       {starred ? <Icon name="heart" size={15} color={C.like} fill /> : null}

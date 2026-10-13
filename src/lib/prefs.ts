@@ -38,7 +38,7 @@ export const DEFAULT_PREFS: Prefs = {
   hymnColour: '',
   colourList: true,
   textSize: 19,
-  font: 'app',
+  font: 'serif',
   spacing: 'normal',
   verseNumbers: true,
   repeatRefrain: false,

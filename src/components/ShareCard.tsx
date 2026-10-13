@@ -5,7 +5,7 @@ import { colourById, colourStops } from '../lib/colours';
 import type { Hymn } from '../lib/hymnal';
 import { getPrefs } from '../lib/prefs';
 import { C, themeName } from '../lib/theme';
-import { SERIF, Text } from './Text';
+import { serif, Text } from './Text';
 
 /*
  * The picture a hymn is shared as: 4 by 5, like an Instagram post. The hymn's background colour (or
@@ -31,14 +31,14 @@ export const ShareCard = forwardRef<View, { hymn: Hymn; verse: string }>(functio
       <View style={{ flex: 1, padding: 28 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Image source={dark ? require('../../assets/splash-logo-dark.png') : require('../../assets/splash-logo.png')} style={{ width: 30, height: 27 }} resizeMode="contain" />
-          <Text style={{ color: fg2, fontSize: 13, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' }}>Hymn {hymn.number}</Text>
+          <Text style={{ color: fg2, fontSize: 14, fontWeight: '600' }}>Hymn {hymn.number}</Text>
         </View>
-        <Text numberOfLines={2} style={{ color: fg, fontSize: 26, lineHeight: 31, fontWeight: '800', marginTop: 22, letterSpacing: -0.3 }}>{hymn.title}</Text>
+        <Text numberOfLines={2} style={[serif(600), { color: fg, fontSize: 29, lineHeight: 33, marginTop: 22, letterSpacing: -0.3 }]}>{hymn.title}</Text>
         <View style={{ flex: 1, justifyContent: 'center' }}>
-          <Text numberOfLines={10} style={{ color: fg, fontSize: size, lineHeight: Math.round(size * 1.5), fontFamily: SERIF }}>{verse}</Text>
+          <Text numberOfLines={10} style={[serif(400), { color: fg, fontSize: size + 1, lineHeight: Math.round(size * 1.55) }]}>{verse}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-          <Text numberOfLines={1} style={{ color: fg2, fontSize: 13, flex: 1, paddingRight: 12 }}>{hymn.author}</Text>
+          <Text numberOfLines={1} style={[serif('italic'), { color: fg2, fontSize: 15, flex: 1, paddingRight: 12 }]}>{hymn.author}</Text>
           <Text style={{ color: fg2, fontSize: 13, fontWeight: '700' }}>SDA Hymnal</Text>
         </View>
       </View>

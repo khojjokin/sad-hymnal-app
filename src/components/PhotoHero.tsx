@@ -6,7 +6,7 @@ import { C } from '../lib/theme';
 import { useHymnLook } from './Backdrop';
 import type { IconName } from './Icon';
 import { Photo, type PhotoEntry } from './Photo';
-import { Text } from './Text';
+import { serif, Text } from './Text';
 import { RoundButton, SearchField, useBarStyle } from './ui';
 
 /*
@@ -77,7 +77,7 @@ export function PhotoHero({ photo, title, line, scroll, left, right, below, belo
           </Animated.View>
           <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0.42)', 'rgba(0,0,0,0.04)', 'rgba(0,0,0,0.22)', 'rgba(0,0,0,0.84)']} locations={[0, 0.32, 0.56, 1]} style={StyleSheet.absoluteFill} />
           <Animated.View pointerEvents="none" style={{ position: 'absolute', left: 16, right: 16, bottom: 16, opacity: bigFade }}>
-            <Text accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: '#ffffff', fontSize: 31, lineHeight: 36, fontWeight: '800', letterSpacing: -0.5, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 10, textShadowOffset: { width: 0, height: 1 } }}>
+            <Text accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} style={{ ...serif(600), color: '#ffffff', fontSize: 40, lineHeight: 44, letterSpacing: -0.6, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 10, textShadowOffset: { width: 0, height: 1 } }}>
               {title}
             </Text>
             {line ? <Text numberOfLines={1} style={{ color: 'rgba(255,255,255,0.84)', fontSize: 14.5, fontWeight: '500', marginTop: 4 }}>{line}</Text> : null}
@@ -97,7 +97,7 @@ export function PhotoHero({ photo, title, line, scroll, left, right, below, belo
       <View pointerEvents="auto" style={{ position: 'absolute', top: insets.top, left: 0, right: 0, height: HERO_BAR, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 }}>
         <View pointerEvents="box-none" style={{ minWidth: 96, flexShrink: 0, flexDirection: 'row', gap: 8 }}>{left}</View>
         <Animated.View pointerEvents="none" style={{ flex: 1, opacity: smallFade }}>
-          <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 18.5, fontWeight: '700', textAlign: 'center', paddingHorizontal: 8 }}>{title}</Text>
+          <Text numberOfLines={1} style={{ ...serif(600), color: '#ffffff', fontSize: 21, textAlign: 'center', paddingHorizontal: 8 }}>{title}</Text>
         </Animated.View>
         <View pointerEvents="box-none" style={{ minWidth: 96, flexShrink: 0, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>{right}</View>
       </View>

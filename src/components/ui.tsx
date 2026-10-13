@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tap } from '../lib/haptics';
 import { C } from '../lib/theme';
 import { Icon, type IconName } from './Icon';
-import { Text, TextInput } from './Text';
+import { serif, Text, TextInput } from './Text';
 
 /*
  * The SDA app's building blocks, carried over as they are: the press that gives under the finger,
@@ -180,7 +180,7 @@ export function Empty({ title, body, icon, action }: { title: string; body?: str
       <View style={{ width: 86, height: 86, borderRadius: 43, borderWidth: 2, borderColor: C.fg, alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
         <Icon name={icon} size={40} color={C.fg} weight={1.6} />
       </View>
-      <Text style={{ color: C.fg, fontSize: 22, fontWeight: '800', textAlign: 'center' }}>{title}</Text>
+      <Text style={[serif(600), { color: C.fg, fontSize: 26, lineHeight: 31, textAlign: 'center' }]}>{title}</Text>
       {body ? <Text style={{ color: C.fg2, fontSize: 15, lineHeight: 21, textAlign: 'center' }}>{body}</Text> : null}
       {action}
     </View>

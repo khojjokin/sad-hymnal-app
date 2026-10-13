@@ -19,8 +19,9 @@ export default function Credits() {
         <SettingsLabel>Photo</SettingsLabel>
         <SettingsRow icon="image" title={`Hymnal banner by ${PHOTOS.hymnal.name}`} sub="Unsplash License" onPress={() => open(photoCreditUrl(PHOTOS.hymnal))} />
         <Band />
-        <SettingsLabel>Font</SettingsLabel>
-        <SettingsRow icon="font" title="Outfit" sub="SIL Open Font License" onPress={() => open('https://fonts.google.com/specimen/Outfit')} />
+        <SettingsLabel>Fonts</SettingsLabel>
+        <SettingsRow icon="font" title="Newsreader" sub="Production Type, SIL Open Font License" onPress={() => open('https://fonts.google.com/specimen/Newsreader')} />
+        <SettingsRow icon="font" title="Plus Jakarta Sans" sub="Tokotype, SIL Open Font License" onPress={() => open('https://fonts.google.com/specimen/Plus+Jakarta+Sans')} />
         <Band />
         <SettingsLabel>Logo</SettingsLabel>
         <Caption>The Seventh-day Adventist logo is a trademark of the General Conference of Seventh-day Adventists.</Caption>
