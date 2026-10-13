@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
-import { Platform, StyleSheet, Text as RNText, TextInput as RNTextInput, type TextInputProps, type TextProps, type TextStyle, unstable_TextAncestorContext } from 'react-native';
+import * as RN from 'react-native';
+import { Platform, StyleSheet, Text as RNText, TextInput as RNTextInput, type TextInputProps, type TextProps, type TextStyle } from 'react-native';
 
 /*
  * The app's two faces (both SIL Open Font Licence, in assets/fonts as static cuts):
@@ -32,6 +33,9 @@ function weightOf(w: TextStyle['fontWeight']): number {
   return Number.isFinite(n) ? n : 400;
 }
 
+/** Whether a Text sits inside another Text. React Native has this; its web version doesn't, so a stand-in. */
+const TextAncestor: React.Context<boolean> = (RN as any).unstable_TextAncestorContext ?? React.createContext(false);
+
 /** Android draws a named cut and then fakes the weight on top unless the weight is cleared. */
 const clearWeight = Platform.OS === 'android' ? ({ fontWeight: 'normal' } as const) : null;
 
@@ -58,7 +62,7 @@ function faceFor(style: TextProps['style'], nested: boolean): TextStyle | null {
 }
 
 export function Text(props: TextProps) {
-  const nested = useContext(unstable_TextAncestorContext) as unknown as boolean;
+  const nested = useContext(TextAncestor);
   const face = faceFor(props.style, nested);
   return <RNText {...props} style={face ? [props.style, face] : props.style} />;
 }
