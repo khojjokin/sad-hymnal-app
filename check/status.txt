@@ -1,8 +1,8 @@
-check started 2026-10-13T17:45:17Z at 8b920a2
+check started 2026-10-13T17:46:24Z at 8ce8994
 v22.23.3
 10.9.9
 npm install: 0
 expo install --check: 0 (versions Expo expects; not fatal)
 tsc: 0
-expo export: 1
-RESULT: FAILED (see tsc.log and export.log)
+expo export: 0
+RESULT: OK

@@ -1,20 +1,57 @@
 Starting Metro Bundler
-iOS Bundling failed 208ms node_modules/expo-router/entry.js (1 module)
-SyntaxError: node_modules/expo-router/entry.js: Cannot find module 'babel-preset-expo'
-Require stack:
-- /home/runner/work/sad-hymnal-app/sad-hymnal-app/node_modules/@babel/core/lib/config/files/plugins.js
-- /home/runner/work/sad-hymnal-app/sad-hymnal-app/node_modules/@babel/core/lib/config/files/index.js
-- /home/runner/work/sad-hymnal-app/sad-hymnal-app/node_modules/@babel/core/lib/index.js
-- /home/runner/work/sad-hymnal-app/sad-hymnal-app/node_modules/expo/node_modules/@expo/metro-config/build/transform-worker/metro-transform-worker.js
-- /home/runner/work/sad-hymnal-app/sad-hymnal-app/node_modules/expo/node_modules/@expo/metro-config/build/transform-worker/transform-worker.js
-- /home/runner/work/sad-hymnal-app/sad-hymnal-app/node_modules/metro/src/DeltaBundler/Worker.flow.js
-- /home/runner/work/sad-hymnal-app/sad-hymnal-app/node_modules/metro/src/DeltaBundler/Worker.js
-- /home/runner/work/sad-hymnal-app/sad-hymnal-app/node_modules/jest-worker/build/workers/processChild.js
+iOS node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 18.4% ( 45/192)
+Android node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 16.5% ( 15/119)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓░░░░░░░░░░░ 34.1% (285/518)
+Android node_modules/expo-router/entry.js ▓▓▓░░░░░░░░░░░░░ 22.6% (217/456)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 52.8% (512/717)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓░░░░░░░░░░░ 35.4% (373/627)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 67.7% (695/848)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 54.2% (539/732)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 81.6% (881/975)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 70.6% (776/936)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 91.0% (1096/1149)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 88.5% (1035/1132)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 98.6% (1258/1267)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1265/1265)
+iOS Bundled 25962ms node_modules/expo-router/entry.js (1267 modules)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1265/1265)
+Android Bundled 28510ms node_modules/expo-router/entry.js (1265 modules)
 
-Make sure that all the Babel plugins and presets you are using
-are defined as dependencies or devDependencies in your package.json
-file. It's possible that the missing plugin is loaded by a preset
-you are using that forgot to add the plugin to its dependencies: you
-can workaround this problem by explicitly adding the missing package
-to your top-level package.json.
+› Assets (45):
+assets/fonts/Newsreader-Bold.ttf (119 kB)
+assets/fonts/Newsreader-Italic.ttf (129 kB)
+assets/fonts/Newsreader-Medium.ttf (119 kB)
+assets/fonts/Newsreader-Regular.ttf (118 kB)
+assets/fonts/Newsreader-SemiBold.ttf (119 kB)
+assets/fonts/PlusJakartaSans-Bold.ttf (96.3 kB)
+assets/fonts/PlusJakartaSans-ExtraBold.ttf (96.3 kB)
+assets/fonts/PlusJakartaSans-Medium.ttf (96.4 kB)
+assets/fonts/PlusJakartaSans-Regular.ttf (96.4 kB)
+assets/fonts/PlusJakartaSans-SemiBold.ttf (96.4 kB)
+assets/mojo.png (104 kB)
+assets/sda-logo-solid-white.png (17 kB)
+assets/splash-logo-dark.png (17.1 kB)
+assets/splash-logo.png (17.1 kB)
+node_modules/@react-navigation/elements/lib/module/assets/back-icon-mask.png (653 B)
+node_modules/@react-navigation/elements/lib/module/assets/back-icon.png (8 variations | 359 B)
+node_modules/@react-navigation/elements/lib/module/assets/clear-icon.png (4 variations | 425 B)
+node_modules/@react-navigation/elements/lib/module/assets/close-icon.png (4 variations | 235 B)
+node_modules/@react-navigation/elements/lib/module/assets/search-icon.png (7 variations | 592 B)
+node_modules/expo-router/assets/arrow_down.png (9.46 kB)
+node_modules/expo-router/assets/error.png (469 B)
+node_modules/expo-router/assets/file.png (138 B)
+node_modules/expo-router/assets/forward.png (188 B)
+node_modules/expo-router/assets/pkg.png (364 B)
+node_modules/expo-router/assets/sitemap.png (465 B)
+node_modules/expo-router/assets/unmatched.png (4.75 kB)
 
+› ios bundles (1):
+_expo/static/js/ios/entry-544af14e89a29ee17fc1dbfe881eb8c0.hbc (3.52 MB)
+
+› android bundles (1):
+_expo/static/js/android/entry-7e46e21b893c5c3fa4529eb2a1539119.hbc (3.52 MB)
+
+› Files (1):
+metadata.json (5.28 kB)
+
+Exported: .export-check
