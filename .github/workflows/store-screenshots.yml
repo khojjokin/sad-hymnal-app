@@ -22,7 +22,6 @@ jobs:
     timeout-minutes: 25
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      LOG_DIR: ${{ runner.temp }}/logs
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,6 +29,8 @@ jobs:
           node-version: 22
       - name: Build the web version
         run: |
+          echo "LOG_DIR=$RUNNER_TEMP/logs" >> "$GITHUB_ENV"
+          LOG_DIR="$RUNNER_TEMP/logs"
           mkdir -p "$LOG_DIR"
           npm ci --no-audit --no-fund > "$LOG_DIR/npm.log" 2>&1 || { tail -40 "$LOG_DIR/npm.log"; exit 1; }
           npx expo export --platform web --output-dir web-dist > "$LOG_DIR/export-web.log" 2>&1 || { tail -60 "$LOG_DIR/export-web.log"; exit 1; }
