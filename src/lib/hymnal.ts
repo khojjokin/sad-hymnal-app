@@ -137,3 +137,42 @@ export function hymnOfTheDay(date = new Date()): Hymn {
   // A stride coprime with the list's length walks through every hymn before repeating.
   return withWords[(day * 37) % withWords.length];
 }
+
+/* ---------- Discover ---------- */
+
+/** A whole number for the day (local), so the day's picks are the same all day and change at midnight. */
+export function dayNumber(date = new Date()): number {
+  return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
+}
+
+/** The `i`th pick from a list for this day and shuffle, walking through every item before repeating. */
+export function pick<T>(list: readonly T[], day: number, shuffle: number, stride = 7): T {
+  return list[Math.abs(day * stride + shuffle * 3) % list.length];
+}
+
+export type Moment = 'morning' | 'evening' | 'sabbath' | 'praise';
+
+/**
+ * What time it is for singing: the Sabbath from Friday at 6 pm to Saturday at 6 pm (sunset varies; this
+ * is the usual rule of thumb), otherwise morning before noon, evening after 5 pm, praise in between.
+ */
+export function momentNow(date = new Date()): Moment {
+  const d = date.getDay();
+  const h = date.getHours();
+  if ((d === 5 && h >= 18) || (d === 6 && h < 18)) return 'sabbath';
+  if (h < 12) return 'morning';
+  if (h >= 17) return 'evening';
+  return 'praise';
+}
+
+/** The book's own sections for each moment. */
+const MOMENT_SECTIONS: Record<Moment, string[]> = {
+  morning: ['Morning Worship'],
+  evening: ['Evening Worship'],
+  sabbath: ['Sabbath'],
+  praise: ['Adoration and Praise', 'Glory and Praise'],
+};
+
+export function hymnsForMoment(m: Moment): Hymn[] {
+  return HYMNS.filter((h) => MOMENT_SECTIONS[m].includes(h.section));
+}

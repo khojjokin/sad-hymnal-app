@@ -16,9 +16,9 @@ type Palette = {
   fg: string;
   fg2: string;
   fg3: string;
-  /** The app's green: buttons, switches, the tab bar's pill. */
+  /** The app's sea blue: buttons, switches, the tab bar's pill. */
   accent: string;
-  /** The same green where it sits as text or a small icon, tuned to read on this background. */
+  /** The same blue where it sits as text or a small icon, tuned to read on this background. */
   accent2: string;
   onAccent: string;
   accentSoft: string;
@@ -39,44 +39,44 @@ type Palette = {
 };
 
 const DARK_PALETTE: Palette = {
-  bg: '#0b1014',
-  bg2: '#131920',
-  surface: '#1b222a',
-  surface2: '#272e38',
-  line: '#232a33',
+  bg: '#0a1016',
+  bg2: '#111a22',
+  surface: '#16212b',
+  surface2: '#223040',
+  line: '#1f2b36',
   fg: '#f3f5f7',
   fg2: '#a4adb9',
   fg3: '#87919d',
-  accent: '#1fbf5a',
-  accent2: '#4fe08a',
+  accent: '#0f7bb0',
+  accent2: '#5cc2ee',
   onAccent: '#ffffff',
-  accentSoft: 'rgba(31,191,90,0.14)',
+  accentSoft: 'rgba(16,128,181,0.2)',
   like: '#ff3040',
   danger: '#ff4d4f',
-  glass: 'rgba(40,46,55,0.78)',
+  glass: 'rgba(28,40,52,0.8)',
   blurTint: 'dark',
   hairline: 'rgba(255,255,255,0.09)',
   press: 'rgba(255,255,255,0.05)',
   scrim: 'rgba(0,0,0,0.32)',
-  sheet: '#191b1f',
-  field: '#24292e',
-  round: '#25282b',
+  sheet: '#141d26',
+  field: '#1c2834',
+  round: '#1c2834',
   statusBar: 'light',
 };
 
 const WHITE_PALETTE: Palette = {
   bg: '#ffffff',
-  bg2: '#f5f6f7',
-  surface: '#f0f2f4',
-  surface2: '#e4e7eb',
-  line: '#e3e6ea',
-  fg: '#0f1419',
-  fg2: '#57606a',
-  fg3: '#666e77',
-  accent: '#16a34a',
-  accent2: '#11823b',
+  bg2: '#f3f7fa',
+  surface: '#eef4f8',
+  surface2: '#dde8ef',
+  line: '#e1e9ef',
+  fg: '#0c1a24',
+  fg2: '#4f5f6b',
+  fg3: '#64737e',
+  accent: '#0b7db3',
+  accent2: '#086a99',
   onAccent: '#ffffff',
-  accentSoft: 'rgba(22,163,74,0.12)',
+  accentSoft: 'rgba(11,125,179,0.1)',
   like: '#ed2939',
   danger: '#e0262e',
   glass: 'rgba(255,255,255,0.82)',
@@ -85,8 +85,8 @@ const WHITE_PALETTE: Palette = {
   press: 'rgba(0,0,0,0.05)',
   scrim: 'rgba(0,0,0,0.22)',
   sheet: '#ffffff',
-  field: '#eff1f3',
-  round: '#eef0f2',
+  field: '#eef3f7',
+  round: '#eef3f7',
   statusBar: 'dark',
 };
 
@@ -94,6 +94,9 @@ export const PALETTES: Record<ThemeName, Palette> = { dark: DARK_PALETTE, white:
 
 /** The colours in use now. Read at render time; see the note at the top of this file. */
 export const C: Palette = { ...WHITE_PALETTE };
+
+/** The sea-blue gradient of the app's feature cards (hymn of the day, the share picture, the icon). */
+export const SEA = ['#0b4f75', '#0b6f9f', '#117fb0'] as const;
 
 let current: ThemeName = 'white';
 

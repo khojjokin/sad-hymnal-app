@@ -7,9 +7,8 @@ export default function TabsLayout() {
   return (
     <Tabs screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: C.bg } }} tabBar={(props: any) => <TabBar {...props} />}>
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="topics" />
+      <Tabs.Screen name="discover" />
       <Tabs.Screen name="favourites" />
-      <Tabs.Screen name="recent" />
       <Tabs.Screen name="settings" />
     </Tabs>
   );

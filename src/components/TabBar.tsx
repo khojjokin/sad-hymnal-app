@@ -7,10 +7,11 @@ import { C } from '../lib/theme';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 import { reduceMotionNow } from './ui';
+import { type Key, useT } from '../lib/i18n';
 
 /*
  * The SDA app's bottom bar: a frosted island inset from the screen's edges, with a green pill that
- * springs across to the tab you're on. Here each tab also has its name under the icon.
+ * springs across to the tab you're on, with each tab's name under its icon.
  */
 
 export const TAB_BAR_HEIGHT = 66;
@@ -20,15 +21,15 @@ export const tabBarBottom = (insetBottom: number) => (insetBottom > 0 ? Math.max
 /** Room a list leaves at its end so its last row clears the bar. */
 export const useTabBarSpace = () => TAB_BAR_HEIGHT + tabBarBottom(useSafeAreaInsets().bottom) + 24;
 
-const TABS: Record<string, { icon: IconName; label: string }> = {
-  index: { icon: 'hymnal', label: 'Hymnal' },
-  topics: { icon: 'grid', label: 'Topics' },
-  favourites: { icon: 'heart', label: 'Favourites' },
-  recent: { icon: 'history', label: 'Recent' },
-  settings: { icon: 'settings', label: 'Settings' },
+const TABS: Record<string, { icon: IconName; label: Key }> = {
+  index: { icon: 'hymnal', label: 'tab.hymnal' },
+  discover: { icon: 'sparkle', label: 'tab.discover' },
+  favourites: { icon: 'heart', label: 'tab.favourites' },
+  settings: { icon: 'settings', label: 'tab.settings' },
 };
 
 export function TabBar({ state, navigation }: any) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { width: screenW } = useWindowDimensions();
   const activeKey: string | undefined = state.routes[state.index]?.key;
@@ -72,9 +73,9 @@ export function TabBar({ state, navigation }: any) {
               };
               const color = on ? '#ffffff' : C.fg;
               return (
-                <Pressable key={route.key} onPress={press} onLayout={place} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={meta.label} style={({ pressed }) => ({ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, opacity: pressed && !on ? 0.55 : 1 })}>
+                <Pressable key={route.key} onPress={press} onLayout={place} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={t(meta.label)} style={({ pressed }) => ({ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, opacity: pressed && !on ? 0.55 : 1 })}>
                   <Icon name={meta.icon} size={23} color={color} weight={on ? 2.3 : 1.9} fill={on && meta.icon === 'heart'} />
-                  <Text numberOfLines={1} style={{ color, fontSize: 10.5, fontWeight: on ? '700' : '500' }}>{meta.label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color, fontSize: 11, fontWeight: on ? '700' : '500' }}>{t(meta.label)}</Text>
                 </Pressable>
               );
             })}

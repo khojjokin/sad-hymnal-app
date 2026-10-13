@@ -9,10 +9,12 @@ import { Button, Empty, Screen, TabHeader, toast } from '../../src/components/ui
 import { tap } from '../../src/lib/haptics';
 import { hymnByNumber, type Hymn } from '../../src/lib/hymnal';
 import { setPrefs, toggleFavourite, usePrefs } from '../../src/lib/prefs';
+import { useT } from '../../src/lib/i18n';
 import { C } from '../../src/lib/theme';
 
 /** The hymns marked with the heart: by number, or newest first. Edit shows a remove button on each. */
 export default function Favourites() {
+  const t = useT();
   const prefs = usePrefs();
   const router = useRouter();
   const open = useOpenHymn();
@@ -29,7 +31,7 @@ export default function Favourites() {
     tap('light');
     const before = prefs.favourites;
     toggleFavourite(n);
-    toast('Removed from favourites');
+    toast(t('hymn.unliked'));
     // Nothing left to edit: back to the plain list.
     if (before.length <= 1) setEditing(false);
   };
@@ -38,7 +40,7 @@ export default function Favourites() {
     const on = order === k;
     return (
       <Pressable key={k} onPress={() => { tap('select'); setOrder(k); }} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ flex: 1, alignItems: 'center', paddingVertical: 11, borderBottomWidth: on ? 1.5 : 0.5, borderBottomColor: on ? C.fg : C.line }}>
-        <Text style={{ color: on ? C.fg : C.fg2, fontSize: 15, fontWeight: on ? '700' : '500' }}>{k === 'number' ? 'By number' : 'Recently added'}</Text>
+        <Text style={{ color: on ? C.fg : C.fg2, fontSize: 15, fontWeight: on ? '700' : '500' }}>{k === 'number' ? t('fav.byNumber') : t('fav.byAdded')}</Text>
       </Pressable>
     );
   });
@@ -46,11 +48,11 @@ export default function Favourites() {
   return (
     <Screen>
       <TabHeader
-        title="Favourites"
+        title={t('fav.title')}
         right={
           hymns.length ? (
             <Pressable onPress={() => { tap('light'); setEditing((e) => !e); }} hitSlop={8} accessibilityRole="button">
-              <Text style={{ color: C.accent2, fontSize: 16.5, fontWeight: '700' }}>{editing ? 'Done' : 'Edit'}</Text>
+              <Text style={{ color: C.accent2, fontSize: 16.5, fontWeight: '700' }}>{editing ? t('fav.done') : t('fav.edit')}</Text>
             </Pressable>
           ) : null
         }
@@ -66,20 +68,20 @@ export default function Favourites() {
               <HymnLine hymn={item} onOpen={open} sub={item.section} />
             </View>
             {editing ? (
-              <Pressable onPress={() => remove(item.number)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`Remove ${item.title}`} style={({ pressed }) => ({ marginRight: 16, height: 32, paddingHorizontal: 14, borderRadius: 10, backgroundColor: C.surface, justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
-                <Text style={{ color: C.fg, fontWeight: '600', fontSize: 14 }}>Remove</Text>
+              <Pressable onPress={() => remove(item.number)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${t('fav.remove')}: ${item.title}`} style={({ pressed }) => ({ marginRight: 16, height: 32, paddingHorizontal: 14, borderRadius: 10, backgroundColor: C.surface, justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
+                <Text style={{ color: C.fg, fontWeight: '600', fontSize: 14 }}>{t('fav.remove')}</Text>
               </Pressable>
             ) : null}
           </View>
         )}
         ListEmptyComponent={
-          <Empty icon="heart" title="No favourites yet" body="Tap the heart on a hymn to keep it here." action={<Button label="Browse the hymnal" small style={{ marginTop: 6 }} onPress={() => router.navigate('/')} />} />
+          <Empty icon="heart" title={t('fav.emptyTitle')} body={t('fav.emptyBody')} action={<Button label={t('fav.browse')} small style={{ marginTop: 6 }} onPress={() => router.navigate('/')} />} />
         }
         ListFooterComponent={
           editing && hymns.length > 1 ? (
-            <Pressable onPress={() => { setPrefs({ favourites: [] }); setEditing(false); toast('Favourites cleared'); }} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 20, opacity: pressed ? 0.6 : 1 })}>
+            <Pressable onPress={() => { setPrefs({ favourites: [] }); setEditing(false); toast(t('fav.cleared')); }} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 20, opacity: pressed ? 0.6 : 1 })}>
               <Icon name="trash" size={18} color={C.like} />
-              <Text style={{ color: C.like, fontWeight: '700', fontSize: 15.5 }}>Remove all</Text>
+              <Text style={{ color: C.like, fontWeight: '700', fontSize: 15.5 }}>{t('fav.removeAll')}</Text>
             </Pressable>
           ) : null
         }

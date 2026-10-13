@@ -7,6 +7,7 @@ import { Text } from '../../src/components/Text';
 import { Screen, ScreenHeader, SectionLabel } from '../../src/components/ui';
 import { PARTS, sectionsOfPart, type Hymn } from '../../src/lib/hymnal';
 import { usePrefs } from '../../src/lib/prefs';
+import { useT } from '../../src/lib/i18n';
 import { C } from '../../src/lib/theme';
 
 type Item = { kind: 'header'; key: string; title: string } | { kind: 'hymn'; key: string; hymn: Hymn };
@@ -15,6 +16,7 @@ type Item = { kind: 'header'; key: string; title: string } | { kind: 'hymn'; key
 export default function Part() {
   const { index } = useLocalSearchParams<{ index: string }>();
   const part = PARTS[Math.min(PARTS.length - 1, Math.max(0, parseInt(String(index ?? '0'), 10) || 0))];
+  const t = useT();
   const insets = useSafeAreaInsets();
   const open = useOpenHymn();
   const prefs = usePrefs();
@@ -55,7 +57,7 @@ export default function Part() {
         ListHeaderComponent={
           <View>
             <Text style={{ color: C.fg2, fontSize: 14.5, paddingHorizontal: 16, paddingBottom: sections.length > 1 ? 12 : 4 }}>
-              Hymns {part.from}–{part.to}
+              {t('part.range', { a: part.from, b: part.to })}
             </Text>
             {sections.length > 1 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>

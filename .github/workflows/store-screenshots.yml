@@ -1,0 +1,48 @@
+name: Store screenshots
+
+# Builds the app for the web and photographs its screens for App Store Connect (1320 x 2868).
+# The pictures are saved to the ci-logs branch under screenshots/, and as a download on the run.
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', 'src/**', 'assets/**', 'scripts/store/**', '.github/workflows/store-screenshots.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: store-screenshots
+  cancel-in-progress: true
+
+jobs:
+  shoot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      LOG_DIR: ${{ runner.temp }}/logs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the web version
+        run: |
+          mkdir -p "$LOG_DIR"
+          npm ci --no-audit --no-fund > "$LOG_DIR/npm.log" 2>&1 || { tail -40 "$LOG_DIR/npm.log"; exit 1; }
+          npx expo export --platform web --output-dir web-dist > "$LOG_DIR/export-web.log" 2>&1 || { tail -60 "$LOG_DIR/export-web.log"; exit 1; }
+      - name: Photograph the screens
+        run: |
+          npm i --no-save --no-audit --no-fund playwright@1.56.0 > "$LOG_DIR/playwright.log" 2>&1
+          npx playwright install --with-deps chromium >> "$LOG_DIR/playwright.log" 2>&1
+          node scripts/store/shoot.mjs web-dist "$LOG_DIR/screenshots" 2>&1 | tee "$LOG_DIR/shoot.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: store-screenshots
+          path: ${{ runner.temp }}/logs/screenshots
+      - name: Save to the ci-logs branch
+        if: always()
+        run: bash scripts/ci-publish-logs.sh screenshots

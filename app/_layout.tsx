@@ -42,7 +42,7 @@ export default function RootLayout() {
   if (!go) return null;
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: C.bg }}>
-      {/* Keyed by theme: every screen draws again in the new colours. */}
+      {/* Keyed by theme: every screen draws again in the new colours. (Words follow the language through useT.) */}
       <View key={theme} style={{ flex: 1 }}>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg }, animation: 'slide_from_right' }}>
           <Stack.Screen name="(tabs)" />
