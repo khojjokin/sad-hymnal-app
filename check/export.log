@@ -1,17 +1,20 @@
 Starting Metro Bundler
-iOS node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 17.9% ( 31/154)
-Android node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 17.1% (106/258)
-iOS node_modules/expo-router/entry.js ▓▓▓▓▓░░░░░░░░░░░ 33.3% (274/497)
-Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 54.8% (472/649)
-iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 54.7% (545/737)
-Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 68.2% (702/850)
-iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 82.0% (889/983)
-Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 81.7% (894/989)
-iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 95.2% (1219/1254)
-Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 96.9% (1244/1264)
-Android Bundled 20004ms node_modules/expo-router/entry.js (1264 modules)
-iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1268/1268)
-iOS Bundled 22362ms node_modules/expo-router/entry.js (1268 modules)
+iOS node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 18.4% ( 46/194)
+Android node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 14.1% ( 15/119)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓░░░░░░░░░░░ 33.7% (282/503)
+Android node_modules/expo-router/entry.js ▓▓▓░░░░░░░░░░░░░ 24.5% (239/483)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 54.8% (504/701)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓░░░░░░░░░░░ 37.0% (416/684)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 68.2% (712/874)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓░░░░░░░ 56.3% (575/784)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 81.8% (879/972)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 81.2% (873/969)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 96.0% (1128/1151)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 93.3% (1130/1179)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 98.7% (1255/1263)
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1261/1261)
+iOS Bundled 24701ms node_modules/expo-router/entry.js (1263 modules)
+Android Bundled 26949ms node_modules/expo-router/entry.js (1261 modules)
 
 › Assets (45):
 assets/fonts/Newsreader-Bold.ttf (119 kB)
@@ -41,11 +44,11 @@ node_modules/expo-router/assets/pkg.png (364 B)
 node_modules/expo-router/assets/sitemap.png (465 B)
 node_modules/expo-router/assets/unmatched.png (4.75 kB)
 
-› android bundles (1):
-_expo/static/js/android/entry-80473b5f0cc45a3f37f18f2cfbf4d40f.hbc (3.52 MB)
-
 › ios bundles (1):
-_expo/static/js/ios/entry-7948790cc34cc9954c549477ccb6d8ee.hbc (3.52 MB)
+_expo/static/js/ios/entry-fce64090841354a4aeaca908893fc60c.hbc (3.54 MB)
+
+› android bundles (1):
+_expo/static/js/android/entry-cf7e55d63642f55ba44896628a3d82af.hbc (3.53 MB)
 
 › Files (1):
 metadata.json (5.28 kB)
