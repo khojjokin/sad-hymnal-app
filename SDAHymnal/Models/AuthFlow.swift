@@ -25,6 +25,8 @@ final class AuthFlow: ObservableObject {
     @Published var code = ""
     @Published var password = ""
     @Published var newPassword = ""
+    /// Sign in or create an account: the first page switches between them.
+    @Published var creating = false
 
     static let minPassword = 8
 
@@ -56,6 +58,19 @@ final class AuthFlow: ObservableObject {
                 self.step = .name
             }
         }
+    }
+
+    /// Create account: email first, then name and an optional password.
+    func startAccount() {
+        guard emailLooksValid else { error = t("auth.badEmail"); return }
+        error = nil
+        password = ""
+        step = .name
+    }
+
+    func toggleMode() {
+        error = nil
+        creating.toggle()
     }
 
     /// Email first, then the password page.

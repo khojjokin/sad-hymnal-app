@@ -100,7 +100,7 @@ struct AuthView: View {
 
     private var title: String {
         switch flow.step {
-        case .email: t("auth.title")
+        case .email: flow.creating ? t("auth.createTitle") : t("auth.title")
         case .name: t("auth.nameTitle")
         case .code: t("auth.codeTitle")
         case .password: t("auth.passwordTitle")
@@ -111,7 +111,7 @@ struct AuthView: View {
 
     private var subtitle: String {
         switch flow.step {
-        case .email: t("auth.subtitle")
+        case .email: flow.creating ? t("auth.createSubtitle") : t("auth.subtitle")
         case .name: t("auth.nameSubtitle")
         case .code(let email): t("auth.codeSubtitle", ["email": email])
         case .password(let email): email
@@ -142,13 +142,30 @@ struct AuthView: View {
                     .padding(.vertical, 6)
             }
             field(t("auth.email"), text: $flow.email, field: .email, keyboard: .emailAddress, content: .emailAddress)
-                .onSubmit { Task { await flow.continueWithEmail() } }
-            Button { Task { await flow.continueWithEmail() } } label: { busyLabel(t("auth.continueEmail")) }
-                .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
-                .disabled(flow.busy || flow.email.isEmpty)
-            Button { flow.usePassword() } label: { Text(t("auth.usePassword")) }
-                .buttonStyle(AuthButtonStyle(fill: Color.bg, text: Color.ink, border: true))
-                .disabled(flow.busy || flow.email.isEmpty)
+                .onSubmit { if flow.creating { flow.startAccount() } else { Task { await flow.continueWithEmail() } } }
+            if flow.creating {
+                Button { flow.startAccount() } label: { busyLabel(t("auth.createEmail")) }
+                    .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
+                    .disabled(flow.busy || flow.email.isEmpty)
+            } else {
+                Button { Task { await flow.continueWithEmail() } } label: { busyLabel(t("auth.continueEmail")) }
+                    .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
+                    .disabled(flow.busy || flow.email.isEmpty)
+                Button { flow.usePassword() } label: { Text(t("auth.usePassword")) }
+                    .buttonStyle(AuthButtonStyle(fill: Color.bg, text: Color.ink, border: true))
+                    .disabled(flow.busy || flow.email.isEmpty)
+            }
+            Button { withAnimation(.easeOut(duration: 0.2)) { flow.toggleMode() } } label: {
+                HStack(spacing: 4) {
+                    Text(flow.creating ? t("auth.haveAccount") : t("auth.newHere")).foregroundStyle(Color.inkSoft)
+                    Text(flow.creating ? t("auth.title") : t("auth.createTitle")).foregroundStyle(Color.brand).fontWeight(.semibold)
+                }
+                .font(.subheadline)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+            }
+            .padding(.top, 10)
+            .disabled(flow.busy)
         case .password:
             secure(t("auth.password"), text: $flow.password, field: .password, content: .password)
                 .onSubmit { Task { await flow.signInWithPassword() } }
