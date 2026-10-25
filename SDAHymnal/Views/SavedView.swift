@@ -7,6 +7,8 @@ struct SavedView: View {
     @State private var newList = false
     @State private var newName = ""
     @State private var showAuth = false
+    @State private var showPlus = false
+    @ObservedObject private var plus = Plus.shared
 
     private let book = HymnBook.shared
 
@@ -17,6 +19,9 @@ struct SavedView: View {
                     Section { accountPrompt }
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
+                }
+                Section {
+                    plannerRow
                 }
                 Section {
                     Picker("", selection: $tab) {
@@ -52,7 +57,32 @@ struct SavedView: View {
                 }
             }
             .fullScreenCover(isPresented: $showAuth) { AuthView() }
+            .fullScreenCover(isPresented: $showPlus) { PlusView() }
             .refreshable { await library.pull() }
+        }
+    }
+
+    /// Plus: the Service planner.
+    @ViewBuilder private var plannerRow: some View {
+        if plus.isPlus {
+            NavigationLink { ServiceListView() } label: { plannerLabel }
+        } else {
+            Button { showPlus = true } label: { plannerLabel }
+        }
+    }
+
+    private var plannerLabel: some View {
+        HStack(spacing: 14) {
+            Image(systemName: "list.bullet.rectangle.portrait.fill").foregroundStyle(.white)
+                .frame(width: 40, height: 40)
+                .background(LinearGradient(colors: [Color(hex: "E0B354"), Color(hex: "B8862F")], startPoint: .topLeading, endPoint: .bottomTrailing),
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(t("plus.planner.title")).font(.body.weight(.medium)).foregroundStyle(Color.ink).lineLimit(1)
+                Text(t("planner.subtitle")).font(.footnote).foregroundStyle(Color.inkSoft).lineLimit(1)
+            }
+            Spacer(minLength: 4)
+            if !plus.isPlus { PlusBadge() }
         }
     }
 

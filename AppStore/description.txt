@@ -1,15 +1,48 @@
 Name: SDA Hymnal
-Subtitle: Sing every hymn, anywhere
+Subtitle: Sing every hymn, every day
+
+Promotional text:
+A hymn for every morning, a verse for every evening. Share them as beautiful cards, and lead worship with Projector mode.
 
 Description:
 The Seventh day Adventist Hymnal, right on your iPhone.
 
-Find any hymn by number, title or words. Read in large, clear type that stays on screen while you sing. Save the hymns you love, make lists for a service or a choir, and share a verse as a beautiful card.
+Find any hymn by number, title or words. Read in large, clear type that stays on screen while you sing. Save the hymns you love and make lists for a service, a choir or your family worship.
 
-Each day brings a hymn of the day, songs for the moment and the stories behind well loved hymns and their writers.
+Every day brings three hymns of the day, a verse to carry with you, the most sung hymns of the week and the stories behind well loved hymns and their writers. A gentle reminder each morning brings the day's hymn to you.
 
-An account is optional. Create one to keep your saved hymns and lists on every device.
+Share any verse as a card made for Instagram, WhatsApp or your church group.
 
-Keywords: hymnal,adventist,sda,hymns,worship,church,sabbath,praise,songs,choir
+Your account is yours to choose. Sign in with Apple, Google or email to keep your hymns and lists on every device.
 
-Promotional text: Hymn of the day, share cards and your own lists. Now with an optional account to keep your hymns on every device.
+SDA Hymnal Plus
+For those who lead and love to share, Plus adds:
+Projector mode, to put a hymn on the church screen or a TV one verse at a time
+Service planner, to plan each Sabbath and share a printed style programme
+Card studio, with more looks, new lettering and your own photo
+No ads
+
+Plus is £1.99 a month and renews monthly until you cancel in Settings. Every hymn stays free without it.
+
+Terms: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy: https://qortyn.com/privacy
+
+Keywords:
+hymnal,adventist,sda,hymns,worship,church,sabbath,praise,songs,choir,lyrics,christian,projector
+
+What's new:
+A fresh new look, hymns of the day, a daily hymn reminder, share cards and SDA Hymnal Plus.
+
+Subscription
+Group: SDA Hymnal Plus
+Product ID: com.mojo.sdahymnal.plus.monthly
+Reference name: Plus Monthly
+Duration: 1 month
+Price: £1.99 (UK), equivalents elsewhere
+Display name: SDA Hymnal Plus
+Description: Projector mode, service planner, card studio, no ads
+
+Review notes:
+Accounts are optional; the whole hymnal works without signing in.
+To test Plus, open Settings and tap SDA Hymnal Plus, or tap any item marked PLUS (Projector in a hymn's menu, Service planner in Saved, the extra card styles in Share).
+Hymns whose words are still under copyright show the title, writer and a Hymnary.org link instead of the words.

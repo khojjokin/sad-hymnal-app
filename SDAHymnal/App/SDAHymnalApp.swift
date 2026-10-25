@@ -1,5 +1,6 @@
 import SwiftUI
 import ClerkKit
+import UserNotifications
 
 @main
 struct SDAHymnalApp: App {
@@ -11,6 +12,7 @@ struct SDAHymnalApp: App {
     @StateObject private var bar = TabBarState()
     init() {
         Clerk.configure(publishableKey: Backend.clerkPublishableKey)
+        UNUserNotificationCenter.current().delegate = NotificationRouter.shared
     }
 
     var body: some Scene {
@@ -51,7 +53,15 @@ struct AppHost: View {
         .preferredColorScheme(splash.showing ? .dark : prefs.appearance.colorScheme)
         .task {
             library.attach(auth)
+            await Plus.shared.load()
             await app.loadConfig()
+        }
+        .onChange(of: splash.showing) { _, showing in
+            // Ask about the daily hymn once the app itself is on screen.
+            if !showing { Task { await DailyHymn.shared.start() } }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NotificationRouter.openHymn)) { note in
+            if let n = note.object as? Int { app.open(n) }
         }
         .onChange(of: clerk.user?.id) { _, _ in syncAccount() }
         .onChange(of: clerk.isLoaded) { _, loaded in if loaded { syncAccount() } }
@@ -62,6 +72,8 @@ struct AppHost: View {
                     await app.loadConfig()
                     await auth.refresh()
                     await library.pull()
+                    await Plus.shared.refresh()
+                    await DailyHymn.shared.reschedule()
                 }
             }
         }

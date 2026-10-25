@@ -44,15 +44,6 @@ struct AuthView: View {
                             .font(.footnote.weight(.medium)).foregroundStyle(Color.bad)
                             .transition(.opacity)
                     }
-                    if flow.step == .email {
-                        VStack(spacing: 8) {
-                            perk("icloud.fill", t("auth.perkSync"))
-                            perk("bookmark.fill", t("auth.perkSave"))
-                            perk("lock.fill", t("auth.perkPrivate"))
-                        }
-                        .padding(.horizontal, 6)
-                    }
-                    Text(t("auth.optional")).font(.footnote).foregroundStyle(Color.inkFaint).multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 22)
                 .padding(.bottom, 40)
@@ -255,14 +246,18 @@ struct OutlineButtonStyle: ButtonStyle {
     }
 }
 
-/// A simple round "G" for the Google button.
+/// Google's "G" for the Google button: the official artwork from Google's sign in branding kit, added to the
+/// asset catalogue as "GoogleG". Until it's added, a plain "G" stands in.
 struct GoogleMark: View {
     var body: some View {
-        Text("G")
-            .font(.system(size: 15, weight: .bold, design: .rounded))
-            .foregroundStyle(.white)
-            .frame(width: 22, height: 22)
-            .background(Color(hex: "4285F4"), in: Circle())
-            .accessibilityHidden(true)
+        if UIImage(named: "GoogleG") != nil {
+            Image("GoogleG").resizable().scaledToFit().frame(width: 20, height: 20).accessibilityHidden(true)
+        } else {
+            Text("G")
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.ink)
+                .frame(width: 22, height: 22)
+                .accessibilityHidden(true)
+        }
     }
 }

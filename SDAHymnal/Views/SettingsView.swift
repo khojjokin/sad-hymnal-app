@@ -8,12 +8,18 @@ struct SettingsView: View {
     @EnvironmentObject private var app: AppState
     @Environment(\.requestReview) private var requestReview
     @State private var showAuth = false
+    @State private var showPlus = false
+    @ObservedObject private var plus = Plus.shared
     @State private var confirmSignOut = false
 
     var body: some View {
         NavigationStack {
             List {
                 Section { accountRow }
+
+                Section { plusRow }
+
+                DailyHymnSection()
 
                 Section(t("settings.reading")) {
                     Picker(selection: $prefs.appearance) {
@@ -95,10 +101,34 @@ struct SettingsView: View {
             .tracksScroll()
             .navigationTitle(t("tab.settings"))
             .fullScreenCover(isPresented: $showAuth) { AuthView() }
+            .fullScreenCover(isPresented: $showPlus) { PlusView() }
             .alert(t("account.signOutTitle"), isPresented: $confirmSignOut) {
                 Button(t("common.cancel"), role: .cancel) {}
                 Button(t("account.signOut"), role: .destructive) { Task { await auth.signOut() } }
             } message: { Text(t("account.signOutBody")) }
+        }
+    }
+
+    private var plusRow: some View {
+        Button { showPlus = true } label: {
+            HStack(spacing: 14) {
+                SDALogo(size: 22, color: Color(hex: "F5D78E"))
+                    .frame(width: 40, height: 40)
+                    .background(LinearGradient(colors: [Color(hex: "0B2D4A"), Color(hex: "06121F")], startPoint: .top, endPoint: .bottom),
+                                in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("SDA Hymnal Plus").font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+                    Text(plus.isPlus ? t("plus.active") : t("plus.rowBody", ["price": plus.price]))
+                        .font(.footnote).foregroundStyle(Color.inkSoft).lineLimit(1)
+                }
+                Spacer(minLength: 4)
+                if plus.isPlus {
+                    Image(systemName: "checkmark.seal.fill").foregroundStyle(Color(hex: "E0B354"))
+                } else {
+                    PlusBadge()
+                }
+            }
+            .padding(.vertical, 4)
         }
     }
 
@@ -263,5 +293,51 @@ struct AccountView: View {
             }
             deleting = false
         }
+    }
+}
+
+/// Settings › Daily hymn: on or off, and the time.
+struct DailyHymnSection: View {
+    @ObservedObject private var daily = DailyHymn.shared
+
+    var body: some View {
+        Section {
+            Toggle(isOn: $daily.enabled) {
+                SettingsLabel(t("daily.setting"), symbol: "bell.badge.fill", tint: Color(hex: "EF4444"))
+            }
+            if daily.enabled {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(t("daily.time")).font(.subheadline).foregroundStyle(Color.inkSoft)
+                    ScrollView(.horizontal) {
+                        HStack(spacing: 8) {
+                            ForEach(DailyHymn.hours, id: \.self) { h in
+                                let on = daily.hour == h
+                                Button { daily.hour = h } label: {
+                                    Text(hourLabel(h)).font(.subheadline.weight(.semibold)).lineLimit(1)
+                                        .foregroundStyle(on ? .white : Color.ink)
+                                        .padding(.horizontal, 14).frame(height: 34)
+                                        .background(on ? Color.brand : Color.card, in: Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                }
+                .padding(.vertical, 4)
+            }
+        } footer: {
+            if daily.denied && daily.enabled {
+                Button(t("daily.denied")) { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
+                    .font(.footnote)
+            } else {
+                Text(t("daily.footer"))
+            }
+        }
+    }
+
+    private func hourLabel(_ h: Int) -> String {
+        var c = DateComponents(); c.hour = h; c.minute = 0
+        return (Calendar.current.date(from: c) ?? Date()).formatted(date: .omitted, time: .shortened)
     }
 }

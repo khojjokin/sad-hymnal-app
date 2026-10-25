@@ -23,7 +23,7 @@ final class Ads: ObservableObject {
 
     var bannerID: String { config.bannerID.isEmpty ? Self.testBanner : config.bannerID }
     private var interstitialID: String { config.interstitialID.isEmpty ? Self.testInterstitial : config.interstitialID }
-    var showsBanner: Bool { config.enabled && config.banner && ready }
+    var showsBanner: Bool { config.enabled && config.banner && ready && !Plus.shared.isPlus }
 
     /// Reads the console's settings (from the hymnal's public config).
     func apply(_ new: AdsConfig) {
@@ -54,7 +54,7 @@ final class Ads: ObservableObject {
 
     /// Called when someone leaves a hymn. Now and then (never more than once every three minutes) a full screen ad shows.
     func hymnClosed() {
-        guard config.enabled, config.interstitial, ready else { return }
+        guard config.enabled, config.interstitial, ready, !Plus.shared.isPlus else { return }
         closedSinceLast += 1
         if let lastShown, Date().timeIntervalSince(lastShown) < 180 { return }
         guard closedSinceLast >= config.every else { preload(); return }

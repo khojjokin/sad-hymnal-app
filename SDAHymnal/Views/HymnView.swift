@@ -10,6 +10,8 @@ struct HymnView: View {
     @State private var showShare = false
     @State private var showLists = false
     @State private var showActions = false
+    @State private var showProjector = false
+    @State private var showPlus = false
     @State private var showStory = false
     @State private var copied = false
 
@@ -45,6 +47,7 @@ struct HymnView: View {
                     case .share: showShare = true
                     case .list: showLists = true
                     case .copy: UIPasteboard.general.string = shareText; copied = true
+                    case .projector: if Plus.shared.isPlus { showProjector = true } else { showPlus = true }
                     }
                 }
             }
@@ -69,6 +72,8 @@ struct HymnView: View {
             }
         }
         .fullScreenCover(isPresented: $showShare) { ShareCardView(hymn: hymn) }
+        .fullScreenCover(isPresented: $showProjector) { ProjectorView(hymn: hymn) }
+        .fullScreenCover(isPresented: $showPlus) { PlusView() }
         .fullScreenCover(isPresented: $showStory) {
             if let story = book.story(for: hymn.number) { StoryView(story: story) }
         }
@@ -330,7 +335,7 @@ struct StoryView: View {
 
 /// The hymn's options, in a card in the middle of the screen.
 struct HymnActions: View {
-    enum Action { case share, list, copy }
+    enum Action { case share, list, copy, projector }
     let hymn: Hymn
     let shareText: String
     let pick: (Action) -> Void
@@ -343,6 +348,13 @@ struct HymnActions: View {
             }
             .padding(.bottom, 10)
             row("square.and.arrow.up", t("hymn.shareCard")) { pick(.share) }
+            if hymn.hasWords {
+                Button { pick(.projector) } label: {
+                    rowLabel("tv.and.mediabox", t("plus.projector.title"))
+                        .overlay(alignment: .trailing) { if !Plus.shared.isPlus { PlusBadge().padding(.trailing, 16) } }
+                }
+                .buttonStyle(.plain)
+            }
             ShareLink(item: shareText) { rowLabel("text.quote", t("hymn.shareText")) }
                 .buttonStyle(.plain)
             row("text.badge.plus", t("hymn.addToList")) { pick(.list) }
