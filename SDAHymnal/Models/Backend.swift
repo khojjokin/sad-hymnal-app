@@ -8,11 +8,24 @@ enum Backend {
     static let url = URL(string: "https://fjnifvugmbtajelmiuuh.supabase.co")!
     static let publishableKey = "sb_publishable_CEwinwr0mVRMfG8qtbpQcA_lZHg_nfw"
 
-    /// Live sign-in runs on clerk.hymnal.qortyn.com once its DNS records are in place.
-    /// Until then the app uses SDA Hymnal's Clerk development instance, which works straight away.
-    static let useLiveSignIn = false
-    static var clerkPublishableKey: String {
-        useLiveSignIn ? "pk_live_Y2xlcmsuaHltbmFsLnFvcnR5bi5jb20k" : "pk_test_YmVjb21pbmctYWxiYWNvcmUtNjc5NC5jbGVyay5hY2NvdW50cy5kZXYk"
+    /// Sign in uses SDA Hymnal's production Clerk (clerk.hymnal.qortyn.com) as soon as that domain answers.
+    /// Each launch checks it in the background and remembers the answer for the next launch, so the app moves
+    /// to production by itself once the DNS records are live, without a new build. Until then it stays on the
+    /// development instance so sign in keeps working.
+    static let liveKey = "pk_live_Y2xlcmsuaHltbmFsLnFvcnR5bi5jb20k"
+    static let devKey = "pk_test_YmVjb21pbmctYWxiYWNvcmUtNjc5NC5jbGVyay5hY2NvdW50cy5kZXYk"
+    private static let liveFlag = "hymnal.clerk.live"
+    static let useLiveSignIn: Bool = UserDefaults.standard.bool(forKey: liveFlag)
+    static var clerkPublishableKey: String { useLiveSignIn ? liveKey : devKey }
+
+    /// Asks the production sign in domain if it's ready, and saves the answer for the next launch.
+    static func checkLiveSignIn() async {
+        var req = URLRequest(url: URL(string: "https://clerk.hymnal.qortyn.com/v1/environment")!)
+        req.timeoutInterval = 8
+        guard let (_, res) = try? await URLSession.shared.data(for: req), let http = res as? HTTPURLResponse else { return }
+        // Any real answer from Clerk (even "unauthorised") means DNS and SSL are live.
+        let live = (200..<500).contains(http.statusCode)
+        UserDefaults.standard.set(live, forKey: liveFlag)
     }
 
     /// The App Store page.
@@ -162,5 +175,47 @@ final class HymnalAPI {
 
     func deleteAccount(token: String) async throws {
         try await call("deleteAccount", token: token)
+    }
+}
+
+/// One message in the support chat.
+struct SupportMessage: Identifiable, Equatable {
+    let id: Int
+    let fromTeam: Bool
+    let body: String
+    let at: Date
+}
+
+extension HymnalAPI {
+    /// A random id for people without an account, so their support chat stays theirs on this device.
+    static var guestID: String {
+        let key = "hymnal.support.guest"
+        if let id = UserDefaults.standard.string(forKey: key) { return id }
+        let id = UUID().uuidString.lowercased()
+        UserDefaults.standard.set(id, forKey: key)
+        return id
+    }
+
+    func supportMessages(token: String?, after: Int?) async throws -> [SupportMessage] {
+        var body: [String: Any] = [:]
+        if token == nil { body["guest"] = Self.guestID }
+        if let after { body["after"] = after }
+        let j = try await call("support.get", token: token, body)
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter()
+        return (j["messages"] as? [[String: Any]] ?? []).compactMap { m in
+            guard let id = (m["id"] as? NSNumber)?.intValue, let text = m["body"] as? String else { return nil }
+            let s = m["at"] as? String ?? ""
+            return SupportMessage(id: id, fromTeam: m["from_team"] as? Bool ?? false, body: text,
+                                  at: iso.date(from: s) ?? plain.date(from: s) ?? Date())
+        }
+    }
+
+    func sendSupport(token: String?, text: String) async throws {
+        let device = await MainActor.run { UIDevice.current.model + " · iOS " + UIDevice.current.systemVersion }
+        var body: [String: Any] = ["body": text, "appVersion": Backend.appVersion, "device": device]
+        if token == nil { body["guest"] = Self.guestID }
+        try await call("support.send", token: token, body)
     }
 }

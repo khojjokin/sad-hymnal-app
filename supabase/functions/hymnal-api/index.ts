@@ -125,6 +125,32 @@ async function handle(req: Request, platform: string, note: (action: string, mem
     return json({ hymns });
   }
 
+  if (action === "support.get" || action === "support.send") {
+    // Support chat with the Qortn team. Members are known by their account; guests by a random id kept on the device.
+    let key: string | null = null;
+    if (me && !me.console) key = "m:" + me.id;
+    else if (typeof body.guest === "string" && /^[0-9A-Fa-f-]{36}$/.test(body.guest)) key = "g:" + body.guest.toLowerCase();
+    if (!key) return json({ error: "Not signed in" }, 401);
+    if (action === "support.get") {
+      const after = Number(body.after ?? 0) || 0;
+      const { data } = await db.from("hymnal_support_messages").select("id,from_team,body,at").eq("thread_key", key).gt("id", after).order("id").limit(200);
+      await db.from("hymnal_support_threads").update({ unread_member: 0 }).eq("key", key);
+      return json({ messages: data ?? [] });
+    }
+    const text = clean(body.body, 4000);
+    if (!text) return json({ error: "Write a message first" }, 400);
+    const now = new Date().toISOString();
+    const { data: t } = await db.from("hymnal_support_threads").select("unread_team").eq("key", key).maybeSingle();
+    await db.from("hymnal_support_threads").upsert({
+      key, member_id: key.startsWith("m:") ? me!.id : null,
+      name: me?.name ?? (clean(body.name, 80) || null), email: me?.email ?? (clean(body.email, 120) || null),
+      app_version: clean(body.appVersion, 20) || null, device: clean(body.device, 40) || null,
+      last_at: now, last_body: text.slice(0, 140), unread_team: (t?.unread_team ?? 0) + 1, status: "open",
+    });
+    await db.from("hymnal_support_messages").insert({ thread_key: key, body: text });
+    return json({ ok: true });
+  }
+
   if (!me) return json({ error: "Not signed in" }, 401);
 
   if (action.startsWith("console.")) {
@@ -160,7 +186,9 @@ async function handle(req: Request, platform: string, note: (action: string, mem
       await db.from("hymnal_members").upsert(row);
       const block = existing?.is_admin ? null : await blocked(me.id);
       const { data: notices } = await db.from("hymnal_notices").select("id,kind,title,body").eq("member_id", me.id).is("read_at", null).order("created_at").limit(10);
+      const { data: sup } = await db.from("hymnal_support_threads").select("unread_member").eq("key", "m:" + me.id).maybeSingle();
       return json({
+        supportUnread: sup?.unread_member ?? 0,
         isAdmin: existing?.is_admin ?? false,
         status: block?.status ?? "active",
         statusMessage: block?.message ?? null,
@@ -192,6 +220,7 @@ async function handle(req: Request, platform: string, note: (action: string, mem
       await db.from("hymnal_deleted_members").upsert({ id: me.id, email: m?.email ?? null, name: m?.name ?? null, reason: "self" });
       await db.from("hymnal_members").delete().eq("id", me.id);
       await db.from("hymnal_events").update({ member_id: null }).eq("member_id", me.id);
+      await db.from("hymnal_support_threads").delete().eq("key", "m:" + me.id);
       return json({ ok: true });
     }
 

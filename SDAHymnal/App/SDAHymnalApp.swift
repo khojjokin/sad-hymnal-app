@@ -12,6 +12,7 @@ struct SDAHymnalApp: App {
     @StateObject private var bar = TabBarState()
     init() {
         Clerk.configure(publishableKey: Backend.clerkPublishableKey)
+        Task.detached(priority: .background) { await Backend.checkLiveSignIn() }
         UNUserNotificationCenter.current().delegate = NotificationRouter.shared
     }
 
@@ -145,7 +146,7 @@ struct RootView: View {
     }
 
     /// The four tabs stay alive (so each keeps its place) under one custom bar: all tabs always shown,
-    /// no sliding bubble, and it shrinks while you scroll down, like Instagram's.
+    /// no sliding bubble, always full size.
     private var tabs: some View {
         ZStack {
             page(.hymnal) { HomeView() }
@@ -175,7 +176,7 @@ struct RootView: View {
         } message: {
             Text(auth.state.notices.first?.body ?? "")
         }
-        .onChange(of: app.tab) { _, tab in bar.current = tab; bar.setCompact(false) }
+        .onChange(of: app.tab) { _, tab in bar.current = tab }
     }
 
     private func page<V: View>(_ tab: AppState.Tab, @ViewBuilder _ content: () -> V) -> some View {

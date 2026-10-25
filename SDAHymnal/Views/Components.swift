@@ -7,7 +7,8 @@ struct Photo: View {
     var height: CGFloat? = nil
 
     static let ids: [String: (id: String, tone: [String])] = [
-        "tileHymnal": ("photo-1536777525605-e146b6cef617", ["6F8FB3", "34506E", "16222F"]),
+        // The old book photo showed another hymnal’s title, so this key now uses the candlelit worship photo.
+        "tileHymnal": ("photo-1482627988233-7c68311232ea", ["8A2440", "46205A", "1C1430"]),
         "hymnal": ("photo-1482627988233-7c68311232ea", ["8A2440", "46205A", "1C1430"]),
         "emptyExplore": ("photo-1604223190546-a43e4c7f29d7", ["F3A65A", "A9584A", "2E2340"]),
         "hymnOfDay": ("photo-1745000769767-2198d91b750b", ["8A5A3B", "4A2C1F"]),
@@ -189,7 +190,7 @@ struct HymnCover: View {
     var radius: CGFloat = 14
     var showsNumber = true
 
-    static let keys = ["tileHymnal", "service", "emptyExplore", "prayer", "hymnOfDay", "bibleStudy", "emptyMusic", "hymnal", "emptyWrite"]
+    static let keys = ["service", "emptyExplore", "prayer", "hymnOfDay", "bibleStudy", "emptyMusic", "hymnal", "emptyWrite"]
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {

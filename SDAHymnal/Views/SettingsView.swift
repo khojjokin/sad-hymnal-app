@@ -1,107 +1,80 @@
 import SwiftUI
 import StoreKit
 
+/// Settings, laid out like Instagram's: one continuous page, no grouped cards. Small grey headings split it up,
+/// each row is a plain outline icon, a title, and a value or chevron.
 struct SettingsView: View {
     @EnvironmentObject private var prefs: Prefs
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var library: Library
     @EnvironmentObject private var app: AppState
     @Environment(\.requestReview) private var requestReview
+    @ObservedObject private var plus = Plus.shared
+    @ObservedObject private var daily = DailyHymn.shared
     @State private var showAuth = false
     @State private var showPlus = false
-    @ObservedObject private var plus = Plus.shared
+    @State private var showSupport = false
     @State private var confirmSignOut = false
 
     var body: some View {
         NavigationStack {
-            List {
-                Section { accountRow }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    accountRow
+                    plusRow.padding(.horizontal, 16).padding(.vertical, 8)
 
-                Section { plusRow }
-
-                DailyHymnSection()
-
-                Section(t("settings.reading")) {
-                    Picker(selection: $prefs.appearance) {
-                        Text(t("settings.system")).tag(Prefs.Appearance.system)
-                        Text(t("settings.light")).tag(Prefs.Appearance.light)
-                        Text(t("settings.dark")).tag(Prefs.Appearance.dark)
-                    } label: { SettingsLabel(t("settings.appearance"), symbol: "circle.lefthalf.filled", tint: Color(hex: "6366F1")) }
-                    .pickerStyle(.navigationLink)
-
-                    Picker(selection: $prefs.language) {
-                        ForEach(L10n.languages, id: \.self) { Text(L10n.names[$0] ?? $0).tag($0) }
-                    } label: { SettingsLabel(t("settings.language"), symbol: "globe", tint: Color(hex: "0EA5E9")) }
-                    .pickerStyle(.navigationLink)
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        SettingsLabel(t("settings.textSize"), symbol: "textformat.size", tint: Color(hex: "F97316"))
-                        HStack(spacing: 12) {
-                            Text("A").font(.system(size: 13))
-                            Slider(value: $prefs.textSize, in: Prefs.textRange, step: 1)
-                            Text("A").font(.system(size: 22))
-                        }
-                        .foregroundStyle(Color.inkSoft)
-                        Text(t("settings.preview")).font(.serif(prefs.textSize)).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.5)
-                    }
-                    .padding(.vertical, 4)
-
-                    Toggle(isOn: $prefs.keepAwake) {
-                        SettingsLabel(t("settings.keepAwake"), symbol: "sun.max.fill", tint: Color(hex: "EAB308"))
-                    }
-                }
-
-                Section {
+                    SettingsHeading(t("settings.sec.hymnal"))
                     Button { app.tab = .saved } label: {
-                        HStack {
-                            SettingsLabel(t("settings.saved"), symbol: "bookmark.fill", tint: .brand)
-                            Spacer()
-                            Text("\(library.favourites.count)").foregroundStyle(Color.inkSoft)
-                        }
+                        SettingsRow(t("settings.saved"), symbol: "bookmark", value: "\(library.favourites.count)")
                     }
+                    SettingsToggleRow(t("daily.setting"), symbol: "bell", isOn: $daily.enabled)
+                    if daily.enabled { dailyTimes }
+                    if daily.denied && daily.enabled {
+                        Button(t("daily.denied")) { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
+                            .font(.footnote).padding(.horizontal, 56).padding(.bottom, 8)
+                    }
+
+                    SettingsDivider()
+                    SettingsHeading(t("settings.sec.reading"))
+                    NavigationLink {
+                        OptionsPage(title: t("settings.appearance"), options: Prefs.Appearance.allCases.map { ($0, appearanceName($0)) }, selection: $prefs.appearance)
+                    } label: { SettingsRow(t("settings.appearance"), symbol: "circle.lefthalf.filled", value: appearanceName(prefs.appearance), chevron: true) }
+                    NavigationLink {
+                        OptionsPage(title: t("settings.language"), options: L10n.languages.map { ($0, L10n.names[$0] ?? $0) }, selection: $prefs.language)
+                    } label: { SettingsRow(t("settings.language"), symbol: "globe", value: L10n.names[prefs.language] ?? prefs.language, chevron: true) }
+                    textSizeRow
+                    SettingsToggleRow(t("settings.keepAwake"), symbol: "sun.max", isOn: $prefs.keepAwake)
+
+                    SettingsDivider()
+                    SettingsHeading(t("settings.sec.support"))
+                    Button { showSupport = true } label: { SettingsRow(t("settings.support"), symbol: "bubble.left.and.bubble.right", chevron: true) }
+                    Button { requestReview() } label: { SettingsRow(t("settings.rate"), symbol: "star") }
                     ShareLink(item: Backend.appStoreURL, message: Text(t("settings.shareMessage"))) {
-                        SettingsLabel(t("settings.share"), symbol: "square.and.arrow.up", tint: Color(hex: "22C55E"))
+                        SettingsRow(t("settings.share"), symbol: "square.and.arrow.up")
                     }
-                    Button { requestReview() } label: {
-                        SettingsLabel(t("settings.rate"), symbol: "star.fill", tint: Color(hex: "F59E0B"))
-                    }
-                }
-                .foregroundStyle(Color.ink)
+                    NavigationLink { CreditsView() } label: { SettingsRow(t("settings.credits"), symbol: "music.note", chevron: true) }
+                    Link(destination: Backend.privacyURL) { SettingsRow(t("settings.privacy"), symbol: "hand.raised", external: true) }
+                    SettingsRow(t("settings.version"), symbol: "info.circle", value: Backend.appVersion)
 
-                Section {
-                    NavigationLink { CreditsView() } label: {
-                        SettingsLabel(t("settings.credits"), symbol: "music.quarternote.3", tint: Color(hex: "8B5CF6"))
-                    }
-                    Link(destination: Backend.privacyURL) {
-                        SettingsLabel(t("settings.privacy"), symbol: "hand.raised.fill", tint: Color(hex: "64748B"))
-                    }
-                    .foregroundStyle(Color.ink)
-                    HStack {
-                        SettingsLabel(t("settings.version"), symbol: "info.circle.fill", tint: Color(hex: "94A3B8"))
-                        Spacer()
-                        Text(Backend.appVersion).foregroundStyle(Color.inkSoft)
-                    }
-                }
-
-                if auth.isSignedIn {
-                    Section {
-                        Button(role: .destructive) { confirmSignOut = true } label: {
-                            Text(t("account.signOut")).frame(maxWidth: .infinity)
+                    if auth.isSignedIn {
+                        SettingsDivider()
+                        Button { confirmSignOut = true } label: {
+                            Text(t("account.signOut")).font(.body).foregroundStyle(Color.bad)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 16).frame(height: 52)
+                                .contentShape(Rectangle())
                         }
                     }
-                }
 
-                Section {
-                    MadeByQortn()
-                        .listRowBackground(Color.clear)
-                        .padding(.vertical, 6)
+                    MadeByQortn().padding(.top, 28).padding(.bottom, 24)
                 }
+                .buttonStyle(.plain)
             }
-            .listStyle(.insetGrouped)
-            .tracksScroll()
+            .background(Color.bg)
             .navigationTitle(t("tab.settings"))
             .fullScreenCover(isPresented: $showAuth) { AuthView() }
             .fullScreenCover(isPresented: $showPlus) { PlusView() }
+            .fullScreenCover(isPresented: $showSupport) { SupportView() }
             .alert(t("account.signOutTitle"), isPresented: $confirmSignOut) {
                 Button(t("common.cancel"), role: .cancel) {}
                 Button(t("account.signOut"), role: .destructive) { Task { await auth.signOut() } }
@@ -109,15 +82,63 @@ struct SettingsView: View {
         }
     }
 
+    private func appearanceName(_ a: Prefs.Appearance) -> String {
+        switch a {
+        case .system: t("settings.system")
+        case .light: t("settings.light")
+        case .dark: t("settings.dark")
+        }
+    }
+
+    private var dailyTimes: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 8) {
+                ForEach(DailyHymn.hours, id: \.self) { h in
+                    let on = daily.hour == h
+                    Button { daily.hour = h } label: {
+                        Text(hourLabel(h)).font(.subheadline.weight(.semibold)).lineLimit(1)
+                            .foregroundStyle(on ? .white : Color.ink)
+                            .padding(.horizontal, 14).frame(height: 34)
+                            .background(on ? Color.brand : Color.card, in: Capsule())
+                    }
+                }
+            }
+            .padding(.horizontal, 56)
+        }
+        .scrollIndicators(.hidden)
+        .padding(.bottom, 10)
+    }
+
+    private func hourLabel(_ h: Int) -> String {
+        var c = DateComponents(); c.hour = h; c.minute = 0
+        return (Calendar.current.date(from: c) ?? Date()).formatted(date: .omitted, time: .shortened)
+    }
+
+    private var textSizeRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            SettingsRow(t("settings.textSize"), symbol: "textformat.size", value: "\(Int(prefs.textSize))")
+            HStack(spacing: 12) {
+                Text("A").font(.system(size: 13))
+                Slider(value: $prefs.textSize, in: Prefs.textRange, step: 1)
+                Text("A").font(.system(size: 22))
+            }
+            .foregroundStyle(Color.inkSoft)
+            .padding(.leading, 56).padding(.trailing, 16)
+            Text(t("settings.preview")).font(.serif(prefs.textSize)).foregroundStyle(Color.ink)
+                .lineLimit(1).minimumScaleFactor(0.5)
+                .padding(.leading, 56).padding(.trailing, 16).padding(.bottom, 10)
+        }
+    }
+
     private var plusRow: some View {
         Button { showPlus = true } label: {
             HStack(spacing: 14) {
-                SDALogo(size: 22, color: Color(hex: "F5D78E"))
+                SDALogo(size: 20, color: Color(hex: "F5D78E"))
                     .frame(width: 40, height: 40)
                     .background(LinearGradient(colors: [Color(hex: "0B2D4A"), Color(hex: "06121F")], startPoint: .top, endPoint: .bottom),
                                 in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("SDA Hymnal Plus").font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+                    Text("SDA Hymnal Plus").font(.subheadline.weight(.semibold)).foregroundStyle(Color.ink).lineLimit(1)
                     Text(plus.isPlus ? t("plus.active") : t("plus.rowBody", ["price": plus.price]))
                         .font(.footnote).foregroundStyle(Color.inkSoft).lineLimit(1)
                 }
@@ -128,7 +149,9 @@ struct SettingsView: View {
                     PlusBadge()
                 }
             }
-            .padding(.vertical, 4)
+            .padding(12)
+            .background(Color.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .contentShape(Rectangle())
         }
     }
 
@@ -137,44 +160,123 @@ struct SettingsView: View {
             NavigationLink { AccountView() } label: {
                 HStack(spacing: 14) {
                     Text(user.initials).font(.headline).foregroundStyle(.white)
-                        .frame(width: 52, height: 52)
+                        .frame(width: 56, height: 56)
                         .background(LinearGradient(colors: Color.sea, startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(user.name).font(.headline).lineLimit(1)
+                        Text(user.name).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
                         Text(user.email).font(.footnote).foregroundStyle(Color.inkSoft).lineLimit(1)
                     }
+                    Spacer(minLength: 4)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color.inkFaint)
                 }
-                .padding(.vertical, 4)
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .contentShape(Rectangle())
             }
         } else {
             Button { showAuth = true } label: {
                 HStack(spacing: 14) {
-                    Image(systemName: "person.crop.circle.fill").font(.system(size: 46)).foregroundStyle(Color.brand)
+                    Image(systemName: "person.crop.circle.fill").font(.system(size: 52)).foregroundStyle(Color.inkFaint)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(t("settings.createAccount")).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
-                        Text(t("settings.createAccountBody")).font(.footnote).foregroundStyle(Color.inkSoft).lineLimit(1)
+                        Text(t("settings.signIn")).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+                        Text(t("settings.signInBody")).font(.footnote).foregroundStyle(Color.inkSoft).lineLimit(1)
                     }
-                    Spacer()
+                    Spacer(minLength: 4)
                     Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color.inkFaint)
                 }
-                .padding(.vertical, 4)
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .contentShape(Rectangle())
             }
         }
     }
 }
 
-struct SettingsLabel: View {
+/// A small grey heading between parts of the settings page.
+struct SettingsHeading: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        Text(text).font(.footnote.weight(.semibold)).foregroundStyle(Color.inkSoft).lineLimit(1)
+            .padding(.horizontal, 16).padding(.top, 18).padding(.bottom, 4)
+    }
+}
+
+/// The thick soft line Instagram puts between parts of its settings.
+struct SettingsDivider: View {
+    var body: some View {
+        Rectangle().fill(Color.card).frame(height: 8).padding(.top, 10)
+    }
+}
+
+/// One settings row: outline icon, title, then a value, a chevron or an outward arrow.
+struct SettingsRow: View {
     let title: String
     let symbol: String
-    let tint: Color
-    init(_ title: String, symbol: String, tint: Color) { self.title = title; self.symbol = symbol; self.tint = tint }
+    var value: String? = nil
+    var chevron = false
+    var external = false
+    init(_ title: String, symbol: String, value: String? = nil, chevron: Bool = false, external: Bool = false) {
+        self.title = title; self.symbol = symbol; self.value = value; self.chevron = chevron; self.external = external
+    }
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
-                .frame(width: 30, height: 30)
-                .background(tint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            Text(title).lineLimit(1)
+        HStack(spacing: 16) {
+            Image(systemName: symbol).font(.system(size: 19, weight: .regular)).foregroundStyle(Color.ink)
+                .frame(width: 24)
+            Text(title).font(.body).foregroundStyle(Color.ink).lineLimit(1)
+            Spacer(minLength: 8)
+            if let value { Text(value).font(.subheadline).foregroundStyle(Color.inkSoft).lineLimit(1) }
+            if chevron { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color.inkFaint) }
+            if external { Image(systemName: "arrow.up.right").font(.footnote.weight(.semibold)).foregroundStyle(Color.inkFaint) }
         }
+        .padding(.horizontal, 16)
+        .frame(height: 52)
+        .contentShape(Rectangle())
+    }
+}
+
+struct SettingsToggleRow: View {
+    let title: String
+    let symbol: String
+    @Binding var isOn: Bool
+    init(_ title: String, symbol: String, isOn: Binding<Bool>) { self.title = title; self.symbol = symbol; _isOn = isOn }
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: symbol).font(.system(size: 19, weight: .regular)).foregroundStyle(Color.ink).frame(width: 24)
+            Toggle(isOn: $isOn) { Text(title).font(.body).foregroundStyle(Color.ink).lineLimit(1) }
+                .tint(Color.brand)
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 52)
+    }
+}
+
+/// Pick one of a few options (appearance, language), Instagram style: a plain list with a tick.
+struct OptionsPage<Value: Hashable>: View {
+    let title: String
+    let options: [(Value, String)]
+    @Binding var selection: Value
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(options, id: \.0) { value, name in
+                    Button { selection = value; dismiss() } label: {
+                        HStack {
+                            Text(name).font(.body).foregroundStyle(Color.ink).lineLimit(1)
+                            Spacer()
+                            Image(systemName: selection == value ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 22)).foregroundStyle(selection == value ? Color.brand : Color.inkFaint)
+                        }
+                        .padding(.horizontal, 16).frame(height: 54)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .background(Color.bg)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -293,51 +395,5 @@ struct AccountView: View {
             }
             deleting = false
         }
-    }
-}
-
-/// Settings › Daily hymn: on or off, and the time.
-struct DailyHymnSection: View {
-    @ObservedObject private var daily = DailyHymn.shared
-
-    var body: some View {
-        Section {
-            Toggle(isOn: $daily.enabled) {
-                SettingsLabel(t("daily.setting"), symbol: "bell.badge.fill", tint: Color(hex: "EF4444"))
-            }
-            if daily.enabled {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(t("daily.time")).font(.subheadline).foregroundStyle(Color.inkSoft)
-                    ScrollView(.horizontal) {
-                        HStack(spacing: 8) {
-                            ForEach(DailyHymn.hours, id: \.self) { h in
-                                let on = daily.hour == h
-                                Button { daily.hour = h } label: {
-                                    Text(hourLabel(h)).font(.subheadline.weight(.semibold)).lineLimit(1)
-                                        .foregroundStyle(on ? .white : Color.ink)
-                                        .padding(.horizontal, 14).frame(height: 34)
-                                        .background(on ? Color.brand : Color.card, in: Capsule())
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-                    .scrollIndicators(.hidden)
-                }
-                .padding(.vertical, 4)
-            }
-        } footer: {
-            if daily.denied && daily.enabled {
-                Button(t("daily.denied")) { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
-                    .font(.footnote)
-            } else {
-                Text(t("daily.footer"))
-            }
-        }
-    }
-
-    private func hourLabel(_ h: Int) -> String {
-        var c = DateComponents(); c.hour = h; c.minute = 0
-        return (Calendar.current.date(from: c) ?? Date()).formatted(date: .omitted, time: .shortened)
     }
 }

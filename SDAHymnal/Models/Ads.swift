@@ -4,66 +4,34 @@ import GoogleMobileAds
 
 /// Google AdMob ads, switched on and set up in the Qortn Console (SDA Hymnal › App settings › Ads).
 /// Off until the console turns them on. Google's test units are used until real unit IDs are added there.
-/// Ads never show on the splash, in sign in, or while someone is in the middle of a hymn.
+/// Free plan only: a single banner at the very end of a hymn, after the last verse. No full screen ads,
+/// nothing on the splash, in sign in, or between verses, so worship is never interrupted.
 @MainActor
 final class Ads: ObservableObject {
     static let shared = Ads()
 
     private static let testBanner = "ca-app-pub-3940256099942544/2435281174"
-    private static let testInterstitial = "ca-app-pub-3940256099942544/4411468910"
 
     @Published private(set) var config = AdsConfig()
     @Published private(set) var ready = false
 
     private var started = false
-    private var interstitial: InterstitialAd?
-    private var loading = false
-    private var lastShown: Date?
-    private var closedSinceLast = 0
 
     var bannerID: String { config.bannerID.isEmpty ? Self.testBanner : config.bannerID }
-    private var interstitialID: String { config.interstitialID.isEmpty ? Self.testInterstitial : config.interstitialID }
     var showsBanner: Bool { config.enabled && config.banner && ready && !Plus.shared.isPlus }
 
     /// Reads the console's settings (from the hymnal's public config).
     func apply(_ new: AdsConfig) {
-        if new.interstitialID != config.interstitialID { interstitial = nil }
         config = new
         if config.enabled { start() }
     }
 
     private func start() {
-        guard !started else { preload(); return }
+        guard !started else { return }
         started = true
         MobileAds.shared.start { _ in
-            Task { @MainActor in
-                Ads.shared.ready = true
-                Ads.shared.preload()
-            }
+            Task { @MainActor in Ads.shared.ready = true }
         }
-    }
-
-    private func preload() {
-        guard config.enabled, config.interstitial, ready, interstitial == nil, !loading else { return }
-        loading = true
-        Task {
-            defer { loading = false }
-            interstitial = try? await InterstitialAd.load(with: interstitialID, request: Request())
-        }
-    }
-
-    /// Called when someone leaves a hymn. Now and then (never more than once every three minutes) a full screen ad shows.
-    func hymnClosed() {
-        guard config.enabled, config.interstitial, ready, !Plus.shared.isPlus else { return }
-        closedSinceLast += 1
-        if let lastShown, Date().timeIntervalSince(lastShown) < 180 { return }
-        guard closedSinceLast >= config.every else { preload(); return }
-        guard let ad = interstitial, let root = Self.topController() else { preload(); return }
-        interstitial = nil
-        closedSinceLast = 0
-        lastShown = Date()
-        ad.present(from: root)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.preload() }
     }
 
     static func topController() -> UIViewController? {

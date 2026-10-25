@@ -110,7 +110,7 @@ struct HomeView: View {
         let hymn = last ?? DiscoverModel.hymnOfDay(featured: app.config.featuredHymn)
         return NavigationLink(value: hymn.number) {
             ZStack(alignment: .bottomLeading) {
-                Photo(key: last == nil ? "hymnOfDay" : "tileHymnal")
+                Photo(key: last == nil ? "hymnOfDay" : "service")
                 LinearGradient(colors: [.clear, .black.opacity(0.25), .black.opacity(0.78)], startPoint: .top, endPoint: .bottom)
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 6) {

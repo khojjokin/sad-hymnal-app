@@ -31,8 +31,9 @@ struct HymnView: View {
                     header
                     if hymn.hasWords { words } else { noWords }
                     if let story = book.story(for: hymn.number) { storyCard(story) }
-                    AdCard().padding(.top, 30)
                     footer
+                    // Free plan: one quiet banner at the very end, after the words, never in the middle of a hymn.
+                    AdCard().padding(.top, 28)
                 }
                 .padding(.bottom, 120)
             }
@@ -82,7 +83,6 @@ struct HymnView: View {
         .onChange(of: current) { _, _ in opened() }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
-            Ads.shared.hymnClosed()
         }
     }
 

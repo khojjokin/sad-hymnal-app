@@ -9,43 +9,31 @@ struct AuthView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.bg.ignoresSafeArea()
-            // A quiet photo at the top that fades into the page.
-            ZStack {
-                Photo(key: "tileHymnal")
-                LinearGradient(colors: [Color.sea[0].opacity(0.35), Color.bg.opacity(0.6), Color.bg], startPoint: .top, endPoint: .bottom)
-            }
-            .frame(height: 380)
-            .frame(maxWidth: .infinity)
-            .clipped()
-            .ignoresSafeArea(edges: .top)
-
+            backdrop
             ScrollView {
-                VStack(spacing: 22) {
-                    VStack(spacing: 14) {
-                        SDALogo(size: 58, color: .white)
-                            .padding(18)
-                            .background(LinearGradient(colors: Color.sea, startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
-                            .shadow(color: Color.sea[0].opacity(0.45), radius: 18, y: 8)
-                        VStack(spacing: 6) {
-                            Text(title).font(.serif(32, .bold)).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.7)
-                            Text(subtitle).font(.subheadline).foregroundStyle(Color.inkSoft).multilineTextAlignment(.center)
-                        }
-                    }
-                    .padding(.top, 70)
-
+                VStack(spacing: 0) {
+                    heading
+                        .padding(.top, 84)
+                        .padding(.bottom, 36)
                     VStack(spacing: 12) { content }
-                        .padding(18)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(Color.stroke, lineWidth: 1))
-
                     if let error = flow.error {
                         Label(error, systemImage: "exclamationmark.circle.fill")
                             .font(.footnote.weight(.medium)).foregroundStyle(Color.bad)
+                            .lineLimit(2).multilineTextAlignment(.center)
+                            .padding(.top, 14)
                             .transition(.opacity)
                     }
+                    if flow.step == .email {
+                        Link(destination: Backend.privacyURL) {
+                            Text(t("auth.terms")).font(.caption).foregroundStyle(Color.inkFaint)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.top, 22)
+                    }
                 }
-                .padding(.horizontal, 22)
+                .frame(maxWidth: 440)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24)
                 .padding(.bottom, 40)
                 .animation(.easeOut(duration: 0.2), value: flow.step)
                 .animation(.easeOut(duration: 0.2), value: flow.error)
@@ -74,6 +62,31 @@ struct AuthView: View {
         }
     }
 
+    /// Plain page with a soft sea glow at the top: no photo, nothing behind the words.
+    private var backdrop: some View {
+        ZStack(alignment: .top) {
+            Color.bg
+            RadialGradient(colors: [Color.brand.opacity(0.16), Color.clear], center: .top, startRadius: 0, endRadius: 420)
+                .frame(height: 520)
+        }
+        .ignoresSafeArea()
+    }
+
+    private var heading: some View {
+        VStack(spacing: 18) {
+            SDALogo(size: 40, color: .white)
+                .frame(width: 76, height: 76)
+                .background(LinearGradient(colors: Color.sea, startPoint: .topLeading, endPoint: .bottomTrailing),
+                            in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .shadow(color: Color.sea[1].opacity(0.35), radius: 16, y: 8)
+            VStack(spacing: 8) {
+                Text(title).font(.serif(30, .semibold)).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.7)
+                Text(subtitle).font(.subheadline).foregroundStyle(Color.inkSoft)
+                    .multilineTextAlignment(.center).lineLimit(2)
+            }
+        }
+    }
+
     private var title: String {
         switch flow.step {
         case .email: t("auth.title")
@@ -97,26 +110,26 @@ struct AuthView: View {
         case .email:
             if AuthFlow.appleEnabled {
                 Button { Task { await flow.continueWithApple() } } label: {
-                    socialLabel(Image(systemName: "apple.logo").font(.system(size: 18, weight: .semibold)), t("auth.apple"))
+                    socialLabel(Image(systemName: "apple.logo").font(.system(size: 17, weight: .semibold)), t("auth.apple"))
                 }
-                .buttonStyle(PrimaryButtonStyle(tint: Color.ink, foreground: Color.bg))
+                .buttonStyle(AuthButtonStyle(fill: Color.ink, text: Color.bg))
                 .disabled(flow.busy)
             }
             if AuthFlow.googleEnabled {
                 Button { Task { await flow.continueWithGoogle() } } label: {
                     socialLabel(GoogleMark(), t("auth.google"))
                 }
-                .buttonStyle(OutlineButtonStyle())
+                .buttonStyle(AuthButtonStyle(fill: Color.bg, text: Color.ink, border: true))
                 .disabled(flow.busy)
             }
             if AuthFlow.appleEnabled || AuthFlow.googleEnabled {
-                HStack(spacing: 10) { line; Text(t("auth.or")).font(.footnote).foregroundStyle(Color.inkSoft); line }
-                    .padding(.vertical, 2)
+                HStack(spacing: 12) { line; Text(t("auth.or")).font(.footnote).foregroundStyle(Color.inkFaint); line }
+                    .padding(.vertical, 6)
             }
             field(t("auth.email"), text: $flow.email, field: .email, keyboard: .emailAddress, content: .emailAddress)
                 .onSubmit { Task { await flow.continueWithEmail() } }
             Button { Task { await flow.continueWithEmail() } } label: { busyLabel(t("auth.continueEmail")) }
-                .buttonStyle(PrimaryButtonStyle())
+                .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
                 .disabled(flow.busy || flow.email.isEmpty)
         case .name:
             field(t("auth.firstName"), text: $flow.firstName, field: .first, content: .givenName)
@@ -124,7 +137,7 @@ struct AuthView: View {
             field(t("auth.lastName"), text: $flow.lastName, field: .last, content: .familyName)
                 .onSubmit { Task { await flow.createAccount() } }
             Button { Task { await flow.createAccount() } } label: { busyLabel(t("auth.create")) }
-                .buttonStyle(PrimaryButtonStyle())
+                .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
                 .disabled(flow.busy)
         case .code:
             CodeField(code: $flow.code)
@@ -133,7 +146,7 @@ struct AuthView: View {
                     if c.count == 6 { Task { await flow.verify() } }
                 }
             Button { Task { await flow.verify() } } label: { busyLabel(t("auth.verify")) }
-                .buttonStyle(PrimaryButtonStyle())
+                .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
                 .disabled(flow.busy || flow.code.count < 6)
             Button(t("auth.resend")) { Task { await flow.resend() } }
                 .font(.subheadline.weight(.medium))
@@ -149,19 +162,9 @@ struct AuthView: View {
     }
 
     private func socialLabel<I: View>(_ icon: I, _ text: String) -> some View {
-        HStack(spacing: 10) {
-            icon.frame(width: 22, height: 22)
+        HStack(spacing: 8) {
+            icon.frame(width: 20, height: 20)
             Text(text).lineLimit(1)
-        }
-    }
-
-    private func perk(_ symbol: String, _ text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol).font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.brand)
-                .frame(width: 28, height: 28)
-                .background(Color.brand.opacity(0.12), in: Circle())
-            Text(text).font(.subheadline).foregroundStyle(Color.ink).lineLimit(1)
-            Spacer()
         }
     }
 
@@ -182,16 +185,18 @@ struct AuthView: View {
             .autocorrectionDisabled()
             .submitLabel(.continue)
             .focused($focus, equals: field)
+            .font(.body)
             .padding(.horizontal, 16)
-            .frame(height: 52)
-            .background(Color.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(focus == field ? Color.brand : Color.stroke, lineWidth: focus == field ? 2 : 1))
+            .frame(height: 50)
+            .background(Color.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(focus == field ? Color.brand : Color.clear, lineWidth: 1.5))
     }
 
     private func circleButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol).font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
-                .frame(width: 40, height: 40).glassCircle()
+            Image(systemName: symbol).font(.system(size: 14, weight: .bold)).foregroundStyle(Color.inkSoft)
+                .frame(width: 36, height: 36)
+                .background(Color.card, in: Circle())
         }
         .accessibilityLabel(label)
     }
@@ -230,17 +235,22 @@ struct CodeField: View {
     }
 }
 
-/// A plain bordered button (Continue with Google).
-struct OutlineButtonStyle: ButtonStyle {
+/// The sign in buttons: 50 pt tall, rounded, 17 pt semibold (Apple's Sign in with Apple proportions).
+struct AuthButtonStyle: ButtonStyle {
+    var fill: Color
+    var text: Color
+    var border = false
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.headline)
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        return configuration.label
+            .font(.system(size: 17, weight: .semibold))
             .lineLimit(1)
-            .foregroundStyle(Color.ink)
+            .minimumScaleFactor(0.85)
+            .foregroundStyle(text)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 15)
-            .background(Color.bg, in: Capsule())
-            .overlay(Capsule().stroke(Color.stroke, lineWidth: 1.5))
+            .frame(height: 50)
+            .background(fill, in: shape)
+            .overlay(shape.stroke(border ? Color.stroke : Color.clear, lineWidth: 1))
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
             .opacity(configuration.isPressed ? 0.85 : 1)
     }

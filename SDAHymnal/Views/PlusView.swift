@@ -45,12 +45,18 @@ struct PlusView: View {
     }
 
     private var content: some View {
-        VStack(spacing: 26) {
-            crest.padding(.top, 54)
+        VStack(spacing: 24) {
+            crest.padding(.top, 50)
             heading
-            VStack(spacing: 12) {
-                ForEach(features) { f in featureRow(f) }
+            VStack(spacing: 0) {
+                ForEach(Array(features.enumerated()), id: \.element.id) { i, f in
+                    featureRow(f)
+                    if i < features.count - 1 { Divider().overlay(Color.white.opacity(0.08)).padding(.leading, 62) }
+                }
             }
+            .padding(.vertical, 6)
+            .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.white.opacity(0.08), lineWidth: 1))
             purchase
             errorText
             links
@@ -59,8 +65,8 @@ struct PlusView: View {
 
     private var heading: some View {
         VStack(spacing: 8) {
-            Text("SDA Hymnal Plus").font(.serif(34, .bold)).foregroundStyle(Color.white).lineLimit(1).minimumScaleFactor(0.8)
-            Text(t("plus.tagline")).font(.subheadline).foregroundStyle(Color.white.opacity(0.75)).multilineTextAlignment(.center)
+            Text("SDA Hymnal Plus").font(.serif(32, .bold)).foregroundStyle(Color.white).lineLimit(1).minimumScaleFactor(0.8)
+            Text(t("plus.tagline")).font(.footnote).foregroundStyle(Color.white.opacity(0.7)).multilineTextAlignment(.center)
         }
     }
 
@@ -133,31 +139,28 @@ struct PlusView: View {
 
     private var crest: some View {
         ZStack {
-            Circle().stroke(Self.ring, lineWidth: 2).frame(width: 118, height: 118)
-            Circle().fill(Color.white.opacity(0.05)).frame(width: 104, height: 104)
-            SDALogo(size: 54, color: Color(hex: "F5D78E"))
+            Circle().stroke(Self.ring, lineWidth: 2).frame(width: 96, height: 96)
+            Circle().fill(Color.white.opacity(0.05)).frame(width: 84, height: 84)
+            SDALogo(size: 44, color: Color(hex: "F5D78E"))
         }
         .shadow(color: Self.gold.opacity(0.4), radius: 24)
     }
 
     private func featureRow(_ f: Feature) -> some View {
         let tint = Color(hex: f.tint)
-        let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
-        return HStack(alignment: .top, spacing: 14) {
+        return HStack(spacing: 14) {
             Image(systemName: f.symbol)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(tint)
-                .frame(width: 44, height: 44)
-                .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-            VStack(alignment: .leading, spacing: 3) {
-                Text(t("plus.\(f.id).title")).font(.headline).foregroundStyle(Color.white).lineLimit(1)
-                Text(t("plus.\(f.id).body")).font(.subheadline).foregroundStyle(Color.white.opacity(0.7))
-                    .fixedSize(horizontal: false, vertical: true)
+                .frame(width: 36, height: 36)
+                .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(alignment: .leading, spacing: 1) {
+                Text(t("plus.\(f.id).title")).font(.subheadline.weight(.semibold)).foregroundStyle(Color.white).lineLimit(1)
+                Text(t("plus.\(f.id).body")).font(.footnote).foregroundStyle(Color.white.opacity(0.65)).lineLimit(1).truncationMode(.tail)
             }
             Spacer(minLength: 0)
         }
-        .padding(16)
-        .background(Color.white.opacity(0.06), in: shape)
-        .overlay(shape.stroke(Color.white.opacity(0.08), lineWidth: 1))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 }

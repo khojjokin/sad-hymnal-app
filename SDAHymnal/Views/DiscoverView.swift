@@ -96,7 +96,6 @@ struct DiscoverView: View {
                     header
                     hymnsOfDay
                     verseCard
-                    AdCard()
                     if !trending.isEmpty { trendingSection }
                     if !momentHymns.isEmpty { momentSection }
                     themeSection
