@@ -1,15 +1,17 @@
 import Foundation
 
 /// One hymn of the Seventh-day Adventist Hymnal (1985), numbered as in the printed book.
-/// The words are in the app for the 502 hymns whose texts are in the public domain; the rest show their title
-/// and writer and link to Hymnary.org.
+/// The app ships the words of the 502 hymns in the public domain. Words for the others are added from the
+/// Qortn Console (SDA Hymnal › Hymn words) with their credit line, reach every app, and are kept offline.
 struct Hymn: Identifiable, Hashable, Decodable {
     let number: Int
     let title: String
     let section: String
     let author: String
-    let lyrics: String
+    var lyrics: String
     let publicDomain: Bool
+    /// The copyright and permission line for words added from the console.
+    var credit: String? = nil
     var id: Int { number }
     var hasWords: Bool { !lyrics.isEmpty }
 
@@ -66,11 +68,12 @@ struct Writer: Decodable, Identifiable {
 final class HymnBook {
     static let shared = HymnBook()
 
-    let hymns: [Hymn]
-    let sections: [HymnSection]
+    private(set) var hymns: [Hymn]
+    private(set) var sections: [HymnSection] = []
     let stories: [Story]
     let writers: [Writer]
-    private let searchIndex: [(hymn: Hymn, title: String, all: String)]
+    private var searchIndex: [(hymn: Hymn, title: String, all: String)] = []
+    private let bundled: [Hymn]
 
     let parts: [HymnPart] = [
         HymnPart(name: "Worship", range: 1...69, symbol: "sun.max.fill"),
@@ -93,12 +96,24 @@ final class HymnBook {
             guard let url = Bundle.main.url(forResource: name, withExtension: "json"), let d = try? Data(contentsOf: url) else { return Data("[]".utf8) }
             return d
         }
-        hymns = (try? JSONDecoder().decode([Hymn].self, from: decode("hymns"))) ?? []
+        bundled = (try? JSONDecoder().decode([Hymn].self, from: decode("hymns"))) ?? []
+        hymns = bundled
         struct StoryFile: Decodable { let stories: [Story]; let writers: [Writer] }
         let file = try? JSONDecoder().decode(StoryFile.self, from: decode("stories"))
         stories = file?.stories ?? []
         writers = file?.writers ?? []
+        apply(HymnWords.cached())
+    }
 
+    /// Puts the console's words into the book (over the bundled ones) and rebuilds sections and search.
+    func apply(_ words: [Int: HymnWords.Entry]) {
+        hymns = bundled.map { h in
+            guard let w = words[h.number] else { return h }
+            var c = h
+            c.lyrics = w.lyrics
+            c.credit = w.credit
+            return c
+        }
         var groups: [HymnSection] = []
         var current: [Hymn] = []
         var name = ""
@@ -115,6 +130,9 @@ final class HymnBook {
             return (h, HymnBook.key(h.title), HymnBook.key("\(h.title) \(h.author) \(firstLine)"))
         }
     }
+
+    /// Hymns whose words came with a credit line (shown on the Credits page).
+    var credited: [Hymn] { hymns.filter { ($0.credit ?? "").isEmpty == false } }
 
     var count: Int { hymns.count }
 

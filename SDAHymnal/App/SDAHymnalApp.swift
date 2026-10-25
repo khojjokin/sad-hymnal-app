@@ -113,11 +113,15 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// Goes up when hymn words arrive from the console, so open screens show them.
+    @Published var wordsVersion = 0
+
     func loadConfig() async {
         if let c = await HymnalAPI.shared.config() {
             config = c
             Ads.shared.apply(c.ads)
         }
+        if await HymnWords.refresh() { wordsVersion += 1 }
     }
 
     var needsUpdate: Bool {
@@ -159,7 +163,7 @@ struct RootView: View {
                 tabs
             }
         }
-        .id(prefs.language)
+        .id("\(prefs.language)-\(app.wordsVersion)")
     }
 
     /// The four tabs stay alive (so each keeps its place) under one custom bar: all tabs always shown,

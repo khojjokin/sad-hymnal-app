@@ -8,7 +8,7 @@ import { config, db, json } from "./shared.ts";
 // - Hymnal users sign in with SDA Hymnal's Clerk (production clerk.hymnal.qortyn.com, dev for test builds).
 // - The Qortn Console Manager signs in with the Qortn Clerk (clerk.qortyn.com); its admins manage the
 //   hymnal through "console.*" actions.
-// - "config", "track" and "trending" also work without signing in, because accounts are optional in the hymnal.
+// - "config", "track", "trending" and "words" also work without signing in, because accounts are optional in the hymnal.
 
 const APP_ISSUERS: Record<string, ReturnType<typeof createRemoteJWKSet>> = {
   "https://clerk.hymnal.qortyn.com": createRemoteJWKSet(new URL("https://clerk.hymnal.qortyn.com/.well-known/jwks.json")),
@@ -139,6 +139,14 @@ async function handle(req: Request, platform: string, note: (action: string, mem
     for (const e of data ?? []) score[e.hymn] = (score[e.hymn] ?? 0) + (e.kind === "open" ? 1 : 3);
     const hymns = Object.entries(score).sort((x, y) => y[1] - x[1]).slice(0, 10).map(([n, s]) => ({ n: Number(n), score: s }));
     return json({ hymns });
+  }
+
+  if (action === "words") {
+    // Licensed hymn words added from the console. Everyone gets them; the app asks only for changes since last time.
+    const since = typeof body.since === "string" && !Number.isNaN(Date.parse(body.since)) ? new Date(body.since).toISOString() : "1970-01-01T00:00:00Z";
+    const { data } = await db.from("hymnal_words").select("hymn,lyrics,credit,updated_at").gt("updated_at", since).order("updated_at").limit(800);
+    const { data: gone } = await db.from("hymnal_admin_actions").select("detail,at").eq("action", "words.delete").gt("at", since).limit(800);
+    return json({ words: data ?? [], removed: (gone ?? []).map((g: any) => g.detail?.hymn).filter((n: any) => Number.isInteger(n)), now: new Date().toISOString() });
   }
 
   if (!me) return json({ error: "Not signed in" }, 401);

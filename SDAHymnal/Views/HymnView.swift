@@ -30,6 +30,10 @@ struct HymnView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     header
                     if hymn.hasWords { words } else { noWords }
+                    if let credit = hymn.credit, !credit.isEmpty {
+                        Text(credit).font(.caption).foregroundStyle(Color.inkFaint)
+                            .padding(.horizontal, 24).padding(.top, 22)
+                    }
                     if let story = book.story(for: hymn.number) { storyCard(story) }
                     footer
                     // Free plan: one quiet banner at the very end, after the words, never in the middle of a hymn.

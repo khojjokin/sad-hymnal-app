@@ -156,6 +156,43 @@ export async function consoleAction(action: string, body: any, admin: Admin): Pr
       return json({ calls: rows.length, errors: errors.length, actions, recentErrors: errors.slice(0, 30) });
     }
 
+    case "console.words.list": {
+      const { data } = await db.from("hymnal_words").select("hymn,credit,updated_at,updated_by").order("hymn").limit(800);
+      return json({ words: data ?? [] });
+    }
+
+    case "console.words.get": {
+      const { data } = await db.from("hymnal_words").select("*").eq("hymn", Math.trunc(Number(body.hymn))).maybeSingle();
+      return json({ word: data ?? null });
+    }
+
+    case "console.words.set":
+    case "console.words.import": {
+      const items: any[] = action === "console.words.set" ? [body] : (Array.isArray(body.items) ? body.items : []);
+      if (!items.length || items.length > 700) return json({ error: "Send between 1 and 700 hymns" }, 400);
+      const rows = [];
+      for (const it of items) {
+        const hymn = Math.trunc(Number(it.hymn));
+        const lyrics = String(it.lyrics ?? "").replace(/\r\n/g, "\n").replace(/\u0000/g, "").trim();
+        const credit = String(it.credit ?? "").trim().slice(0, 300) || null;
+        if (!(hymn >= 1 && hymn <= 695)) return json({ error: `Hymn number ${it.hymn} isn't between 1 and 695` }, 400);
+        if (!lyrics || lyrics.length > 12000) return json({ error: `Hymn ${hymn} needs words (up to 12,000 characters)` }, 400);
+        rows.push({ hymn, lyrics, credit, updated_at: new Date().toISOString(), updated_by: admin.email });
+      }
+      const { error } = await db.from("hymnal_words").upsert(rows);
+      if (error) return json({ error: "Couldn't save the words" }, 500);
+      await audit(admin, action === "console.words.set" ? "words.set" : "words.import", null, { hymns: rows.map((r) => r.hymn).slice(0, 700) });
+      return json({ ok: true, saved: rows.length });
+    }
+
+    case "console.words.delete": {
+      const hymn = Math.trunc(Number(body.hymn));
+      if (!(hymn >= 1 && hymn <= 695)) return json({ error: "No such hymn" }, 400);
+      await db.from("hymnal_words").delete().eq("hymn", hymn);
+      await audit(admin, "words.delete", null, { hymn });
+      return json({ ok: true });
+    }
+
     case "console.activity": {
       const { data } = await db.from("hymnal_admin_actions").select("*").order("at", { ascending: false }).limit(100);
       return json({ actions: data ?? [] });

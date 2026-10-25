@@ -290,6 +290,7 @@ struct OptionsPage<Value: Hashable>: View {
 
 /// Where the hymns, words and pictures come from, with credit to everyone behind them.
 struct CreditsView: View {
+    private let credited = HymnBook.shared.credited
     private let writers = Set(HymnBook.shared.hymns.map(\.author).filter { !$0.isEmpty }).count
 
     var body: some View {
@@ -305,6 +306,7 @@ struct CreditsView: View {
                 credit(t("credits.writersTitle"), t("credits.writers", ["n": writers]), symbol: "music.quarternote.3")
                 credit(t("credits.photosTitle"), t("credits.photos"), symbol: "photo")
                 credit(t("credits.logoTitle"), t("credits.logo"), symbol: "seal")
+                if !credited.isEmpty { creditedList }
                 credit(t("credits.thanksTitle"), t("credits.thanks"), symbol: "heart")
 
                 MadeByQortn().padding(.top, 28).padding(.bottom, 24)
@@ -313,6 +315,26 @@ struct CreditsView: View {
         .background(Color.bg)
         .navigationTitle(t("settings.credits"))
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// Every hymn whose words are used by permission, with its own credit line.
+    private var creditedList: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SettingsDivider()
+            HStack(spacing: 16) {
+                Image(systemName: "c.circle").font(.system(size: 19)).foregroundStyle(Color.ink).frame(width: 24)
+                Text(t("credits.permissionTitle")).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+            }
+            .padding(.horizontal, 16).padding(.top, 16).padding(.bottom, 8)
+            ForEach(credited) { h in
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(h.number) · \(h.title)").font(.subheadline.weight(.medium)).foregroundStyle(Color.ink).lineLimit(1)
+                    Text(h.credit ?? "").font(.footnote).foregroundStyle(Color.inkSoft).fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.leading, 56).padding(.trailing, 16).padding(.vertical, 8)
+            }
+        }
+        .padding(.bottom, 8)
     }
 
     private func credit(_ title: String, _ body: String, symbol: String) -> some View {
