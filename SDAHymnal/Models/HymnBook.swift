@@ -12,7 +12,6 @@ struct Hymn: Identifiable, Hashable, Decodable {
     let publicDomain: Bool
     var id: Int { number }
     var hasWords: Bool { !lyrics.isEmpty }
-    var hymnaryURL: URL { URL(string: "https://hymnary.org/hymn/SDAH1985/\(number)")! }
 
     enum CodingKeys: String, CodingKey { case n, t, s, a, l, pd }
     init(from d: Decoder) throws {

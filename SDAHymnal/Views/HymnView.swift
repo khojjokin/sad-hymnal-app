@@ -155,9 +155,6 @@ struct HymnView: View {
             Image(systemName: "music.note").font(.title2).foregroundStyle(Color.brand)
             Text(t("hymn.copyrightTitle")).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
             Text(t("hymn.copyrightBody")).font(.subheadline).foregroundStyle(Color.inkSoft)
-            Link(destination: hymn.hymnaryURL) {
-                Label(t("hymn.hymnary"), systemImage: "safari").font(.subheadline.weight(.semibold))
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .card()
@@ -365,8 +362,6 @@ struct HymnActions: View {
                 .buttonStyle(.plain)
             row("text.badge.plus", t("hymn.addToList")) { pick(.list) }
             if hymn.hasWords { row("doc.on.doc", t("hymn.copy")) { pick(.copy) } }
-            Link(destination: hymn.hymnaryURL) { rowLabel("safari", t("hymn.hymnary")) }
-                .buttonStyle(.plain)
         }
     }
 

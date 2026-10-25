@@ -30,22 +30,38 @@ struct ProjectorView: View {
                 Color.black.ignoresSafeArea()
                 slideView(side: side)
                     .padding(.horizontal, geo.size.width * 0.07)
-                    .padding(.vertical, 40)
+                    .padding(.vertical, 70)
                     .id(index)
                     .transition(.opacity)
                 tapZones
-                if chrome { chromeView.transition(.opacity) }
+                chromeView.opacity(chrome ? 1 : 0)
+                // The way out is always there, even when the rest hides.
+                if !chrome { quietClose }
             }
-            .gesture(DragGesture(minimumDistance: 30).onEnded { v in go(v.translation.width < 0 ? 1 : -1) })
+            .gesture(DragGesture(minimumDistance: 30).onEnded { v in
+                if v.translation.height > 120 && abs(v.translation.width) < 80 { dismiss(); return }
+                if abs(v.translation.width) > 40 { go(v.translation.width < 0 ? 1 : -1) }
+            })
         }
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
-            Task { try? await Task.sleep(for: .seconds(3)); withAnimation { chrome = false } }
+            hideSoon()
         }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = Prefs.shared.keepAwake }
-        .onLongPressGesture { withAnimation { chrome.toggle() } }
+    }
+
+    private func hideSoon() {
+        Task {
+            try? await Task.sleep(for: .seconds(4))
+            withAnimation(.easeOut(duration: 0.4)) { chrome = false }
+        }
+    }
+
+    private func showChrome() {
+        withAnimation(.easeOut(duration: 0.25)) { chrome = true }
+        hideSoon()
     }
 
     private var current: Slide {
@@ -75,20 +91,38 @@ struct ProjectorView: View {
         }
     }
 
-    /// Tap left to go back, right to go on.
+    /// Tap the left side to go back, the right side to go on, the middle to show the controls.
     private var tapZones: some View {
         HStack(spacing: 0) {
             Color.clear.contentShape(Rectangle()).onTapGesture { go(-1) }
+            Color.clear.contentShape(Rectangle()).onTapGesture { if chrome { withAnimation { chrome = false } } else { showChrome() } }
             Color.clear.contentShape(Rectangle()).onTapGesture { go(1) }
         }
+    }
+
+    /// A faint close button that stays while the controls are hidden.
+    private var quietClose: some View {
+        VStack {
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark").font(.system(size: 14, weight: .bold)).foregroundStyle(.white.opacity(0.6))
+                        .frame(width: 40, height: 40).background(Color.white.opacity(0.08), in: Circle())
+                }
+                .accessibilityLabel(t("common.close"))
+                Spacer()
+            }
+            Spacer()
+        }
+        .padding(18)
     }
 
     private var chromeView: some View {
         VStack {
             HStack(spacing: 12) {
                 Button { dismiss() } label: {
-                    Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
-                        .frame(width: 40, height: 40).glassCircle()
+                    Label(t("common.back"), systemImage: "chevron.left")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(.white)
+                        .padding(.horizontal, 14).frame(height: 40).glass(20)
                 }
                 .accessibilityLabel(t("common.close"))
                 Text("\(hymn.number) · \(hymn.title)").font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.7)).lineLimit(1)
@@ -96,13 +130,28 @@ struct ProjectorView: View {
                 AirPlayButton().frame(width: 40, height: 40).glassCircle()
             }
             Spacer()
-            HStack {
-                Text(current.label).font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.6))
-                Spacer()
-                Text("\(index + 1) / \(slides.count)").font(.footnote.monospacedDigit()).foregroundStyle(.white.opacity(0.6))
+            HStack(spacing: 14) {
+                Button { go(-1) } label: {
+                    Image(systemName: "chevron.left").font(.system(size: 18, weight: .bold)).foregroundStyle(.white)
+                        .frame(width: 52, height: 52).glassCircle()
+                }
+                .disabled(index == 0).opacity(index == 0 ? 0.4 : 1)
+                .accessibilityLabel(t("hymn.previous"))
+                VStack(spacing: 2) {
+                    Text(current.label).font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.8)).lineLimit(1)
+                    Text("\(index + 1) / \(slides.count)").font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.55))
+                }
+                .frame(minWidth: 90)
+                Button { go(1) } label: {
+                    Image(systemName: "chevron.right").font(.system(size: 18, weight: .bold)).foregroundStyle(.white)
+                        .frame(width: 52, height: 52).glassCircle()
+                }
+                .disabled(index >= slides.count - 1).opacity(index >= slides.count - 1 ? 0.4 : 1)
+                .accessibilityLabel(t("hymn.next"))
             }
         }
         .padding(18)
+        .allowsHitTesting(chrome)
     }
 
     private func go(_ by: Int) {

@@ -45,4 +45,4 @@ Description: Projector mode, service planner, card studio, no ads
 Review notes:
 Accounts are optional; the whole hymnal works without signing in.
 To test Plus, open Settings and tap SDA Hymnal Plus, or tap any item marked PLUS (Projector in a hymn's menu, Service planner in Saved, the extra card styles in Share).
-Hymns whose words are still under copyright show the title, writer and a Hymnary.org link instead of the words.
+Some hymns show only the title and writer, without words, and ask people to sing from their printed hymnal.

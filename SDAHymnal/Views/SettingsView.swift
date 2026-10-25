@@ -301,7 +301,6 @@ struct CreditsView: View {
             }
             Section(t("credits.sources")) {
                 Text(t("credits.words"))
-                Text(t("credits.copyright"))
                 Text(t("credits.photos"))
             }
             .font(.subheadline)
