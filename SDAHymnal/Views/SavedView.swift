@@ -160,9 +160,9 @@ struct ListDetailView: View {
                     if list.hymns.isEmpty {
                         EmptyState(symbol: "plus.circle", title: t("lists.emptyListTitle"), message: t("lists.emptyListBody"))
                     }
-                    ForEach(Array(list.hymns.enumerated()), id: \.offset) { _, n in
-                        if let h = HymnBook.shared.hymn(n) {
-                            NavigationLink(value: n) { HymnRow(hymn: h, subtitle: h.author) }
+                    ForEach(Array(list.hymns.enumerated()), id: \.offset) { item in
+                        if let h = HymnBook.shared.hymn(item.element) {
+                            NavigationLink(value: item.element) { HymnRow(hymn: h, subtitle: h.author) }
                         }
                     }
                     .onDelete { library.remove(at: $0, from: listId) }

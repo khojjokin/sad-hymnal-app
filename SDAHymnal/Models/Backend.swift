@@ -15,8 +15,8 @@ enum Backend {
         useLiveSignIn ? "pk_live_Y2xlcmsuaHltbmFsLnFvcnR5bi5jb20k" : "pk_test_YmVjb21pbmctYWxiYWNvcmUtNjc5NC5jbGVyay5hY2NvdW50cy5kZXYk"
     }
 
-    /// The App Store page (search until the app has its listing).
-    static let appStoreURL = URL(string: "https://apps.apple.com/search?term=SDA%20Hymnal%20Qortn")!
+    /// The App Store page.
+    static let appStoreURL = URL(string: "https://apps.apple.com/app/id6822432398")!
     static let privacyURL = URL(string: "https://qortyn.com/privacy")!
 
     static var appVersion: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0" }
