@@ -96,10 +96,10 @@ struct DiscoverView: View {
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .glass(12)
                     Text("\(today.number)").font(.serif(44, .semibold)).foregroundStyle(.white)
-                    Text(today.title).font(.serif(26, .semibold)).foregroundStyle(.white).lineLimit(2).multilineTextAlignment(.leading)
+                    Text(today.title).font(.serif(26, .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.75)
                     if let first = book.verses(of: today).first {
                         Text(first.text.split(separator: "\n").prefix(2).joined(separator: " "))
-                            .font(.serif(15).italic()).foregroundStyle(.white.opacity(0.8)).lineLimit(2).multilineTextAlignment(.leading)
+                            .font(.serif(15).italic()).foregroundStyle(.white.opacity(0.8)).lineLimit(1)
                     }
                 }
                 .padding(22)
@@ -123,7 +123,7 @@ struct DiscoverView: View {
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("\(h.number)").font(.serif(30, .semibold)).foregroundStyle(.white)
                                 Spacer()
-                                Text(h.title).font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(2).multilineTextAlignment(.leading)
+                                Text(h.title).font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1)
                             }
                             .padding(16)
                             .frame(width: 160, height: 170, alignment: .leading)

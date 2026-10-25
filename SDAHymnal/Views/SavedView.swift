@@ -63,7 +63,7 @@ struct SavedView: View {
                     .background(Color.white.opacity(0.18), in: Circle())
                 VStack(alignment: .leading, spacing: 3) {
                     Text(t("saved.keepTitle")).font(.headline).foregroundStyle(.white).lineLimit(1)
-                    Text(t("saved.keepBody")).font(.footnote).foregroundStyle(.white.opacity(0.85)).lineLimit(2).multilineTextAlignment(.leading)
+                    Text(t("saved.keepBody")).font(.footnote).foregroundStyle(.white.opacity(0.85)).lineLimit(1)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.7))

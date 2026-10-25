@@ -169,7 +169,7 @@ struct AnnouncementBanner: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "megaphone.fill").foregroundStyle(Color.brand)
-            Text(text).font(.footnote.weight(.medium)).foregroundStyle(Color.ink).lineLimit(2)
+            Text(text).font(.footnote.weight(.medium)).foregroundStyle(Color.ink).lineLimit(1)
             Spacer(minLength: 0)
             if let onClose {
                 Button(action: onClose) { Image(systemName: "xmark").font(.caption.weight(.bold)).foregroundStyle(Color.inkSoft) }

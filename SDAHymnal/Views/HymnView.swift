@@ -99,7 +99,7 @@ struct HymnView: View {
                 Text("\(hymn.number)").font(.serif(64, .semibold)).monospacedDigit().foregroundStyle(Color.brand)
                 Spacer()
             }
-            Text(hymn.title).font(.serif(30, .semibold)).foregroundStyle(Color.ink).fixedSize(horizontal: false, vertical: true)
+            Text(hymn.title).font(.serif(30, .semibold)).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.6)
             if !hymn.author.isEmpty {
                 Text(hymn.author).font(.serif(16).italic()).foregroundStyle(Color.inkSoft).lineLimit(1)
             }
@@ -153,7 +153,7 @@ struct HymnView: View {
                 LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(t("hymn.storyBehind")).font(.caption.weight(.semibold)).textCase(.uppercase).tracking(1).foregroundStyle(.white.opacity(0.8)).lineLimit(1)
-                    Text(story.text).font(.serif(17)).foregroundStyle(.white).lineLimit(2).multilineTextAlignment(.leading)
+                    Text(story.text).font(.serif(17)).foregroundStyle(.white).lineLimit(1)
                 }
                 .padding(18)
             }
