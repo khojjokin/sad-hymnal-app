@@ -288,28 +288,45 @@ struct OptionsPage<Value: Hashable>: View {
     }
 }
 
-/// Where the hymns, words and pictures come from.
+/// Where the hymns, words and pictures come from, with credit to everyone behind them.
 struct CreditsView: View {
+    private let writers = Set(HymnBook.shared.hymns.map(\.author).filter { !$0.isEmpty }).count
+
     var body: some View {
-        List {
-            Section {
-                VStack(alignment: .leading, spacing: 10) {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 12) {
                     SDALogo(size: 44, color: .brand)
-                    Text(t("credits.body")).font(.serif(17)).lineSpacing(4)
+                    Text(t("credits.body")).font(.serif(18)).foregroundStyle(Color.ink).lineSpacing(4)
                 }
-                .padding(.vertical, 6)
+                .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 8)
+
+                credit(t("credits.hymnalTitle"), t("credits.hymnal"), symbol: "book.closed")
+                credit(t("credits.writersTitle"), t("credits.writers", ["n": writers]), symbol: "music.quarternote.3")
+                credit(t("credits.photosTitle"), t("credits.photos"), symbol: "photo")
+                credit(t("credits.logoTitle"), t("credits.logo"), symbol: "seal")
+                credit(t("credits.thanksTitle"), t("credits.thanks"), symbol: "heart")
+
+                MadeByQortn().padding(.top, 28).padding(.bottom, 24)
             }
-            Section(t("credits.sources")) {
-                Text(t("credits.words"))
-                Text(t("credits.photos"))
-            }
-            .font(.subheadline)
-            .foregroundStyle(Color.inkSoft)
-            Section { MadeByQortn().listRowBackground(Color.clear) }
         }
-        .listStyle(.insetGrouped)
+        .background(Color.bg)
         .navigationTitle(t("settings.credits"))
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func credit(_ title: String, _ body: String, symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SettingsDivider()
+            HStack(alignment: .top, spacing: 16) {
+                Image(systemName: symbol).font(.system(size: 19)).foregroundStyle(Color.ink).frame(width: 24).padding(.top, 2)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(title).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+                    Text(body).font(.subheadline).foregroundStyle(Color.inkSoft).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 16)
+        }
     }
 }
 
