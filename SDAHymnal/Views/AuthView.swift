@@ -1,7 +1,7 @@
 import SwiftUI
 import ClerkKit
 
-/// Create an account or sign in, full screen: email, then a 6-digit code. Optional; the app works without it.
+/// Create an account or sign in, full screen: Apple, Google, an email code or a password. Optional; the app works without it.
 struct AuthView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var app: AppState
@@ -9,7 +9,7 @@ struct AuthView: View {
     @EnvironmentObject private var library: Library
     @StateObject private var flow = AuthFlow()
     @FocusState private var focus: Field?
-    enum Field { case email, first, last, code }
+    enum Field { case email, first, last, newAccountPassword, code, password, newPassword }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -59,6 +59,8 @@ struct AuthView: View {
             switch step {
             case .name: focus = .first
             case .code: focus = .code
+            case .password: focus = .password
+            case .reset: focus = nil
             case .done:
                 // Straight back into the app, with a quick "You're in" over it.
                 auth.update(from: Clerk.shared.user)
@@ -101,6 +103,8 @@ struct AuthView: View {
         case .email: t("auth.title")
         case .name: t("auth.nameTitle")
         case .code: t("auth.codeTitle")
+        case .password: t("auth.passwordTitle")
+        case .reset: t("auth.resetTitle")
         case .done: t("auth.doneTitle")
         }
     }
@@ -110,6 +114,8 @@ struct AuthView: View {
         case .email: t("auth.subtitle")
         case .name: t("auth.nameSubtitle")
         case .code(let email): t("auth.codeSubtitle", ["email": email])
+        case .password(let email): email
+        case .reset(let email): t("auth.codeSubtitle", ["email": email])
         case .done: t("auth.doneSubtitle")
         }
     }
@@ -140,11 +146,46 @@ struct AuthView: View {
             Button { Task { await flow.continueWithEmail() } } label: { busyLabel(t("auth.continueEmail")) }
                 .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
                 .disabled(flow.busy || flow.email.isEmpty)
+            Button { flow.usePassword() } label: { Text(t("auth.usePassword")) }
+                .buttonStyle(AuthButtonStyle(fill: Color.bg, text: Color.ink, border: true))
+                .disabled(flow.busy || flow.email.isEmpty)
+        case .password:
+            secure(t("auth.password"), text: $flow.password, field: .password, content: .password)
+                .onSubmit { Task { await flow.signInWithPassword() } }
+            Button { Task { await flow.signInWithPassword() } } label: { busyLabel(t("auth.signIn")) }
+                .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
+                .disabled(flow.busy || flow.password.isEmpty)
+            HStack {
+                Button(t("auth.forgot")) { Task { await flow.forgotPassword() } }
+                Spacer()
+                Button(t("auth.useCode")) { Task { await flow.continueWithEmail() } }
+            }
+            .font(.subheadline.weight(.medium))
+            .lineLimit(1)
+            .disabled(flow.busy)
+            .padding(.top, 4)
+        case .reset:
+            CodeField(code: $flow.code)
+                .focused($focus, equals: .code)
+                .onChange(of: flow.code) { _, c in if c.count == 6 { focus = .newPassword } }
+            secure(t("auth.newPassword"), text: $flow.newPassword, field: .newPassword, content: .newPassword)
+                .onSubmit { Task { await flow.resetPassword() } }
+            Text(t("auth.passwordHint")).font(.caption).foregroundStyle(Color.inkFaint).lineLimit(1)
+            Button { Task { await flow.resetPassword() } } label: { busyLabel(t("auth.savePassword")) }
+                .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
+                .disabled(flow.busy || flow.code.count < 6 || flow.newPassword.isEmpty)
+            Button(t("auth.resend")) { Task { await flow.resend() } }
+                .font(.subheadline.weight(.medium))
+                .disabled(flow.busy)
         case .name:
             field(t("auth.firstName"), text: $flow.firstName, field: .first, content: .givenName)
                 .onSubmit { focus = .last }
             field(t("auth.lastName"), text: $flow.lastName, field: .last, content: .familyName)
+                .onSubmit { focus = .newAccountPassword }
+            secure(t("auth.passwordOptional"), text: $flow.password, field: .newAccountPassword, content: .newPassword)
                 .onSubmit { Task { await flow.createAccount() } }
+            Text(t("auth.passwordOptionalHint")).font(.caption).foregroundStyle(Color.inkFaint)
+                .multilineTextAlignment(.center).lineLimit(2)
             Button { Task { await flow.createAccount() } } label: { busyLabel(t("auth.create")) }
                 .buttonStyle(AuthButtonStyle(fill: Color.brand, text: .white))
                 .disabled(flow.busy)
@@ -193,6 +234,20 @@ struct AuthView: View {
             .textInputAutocapitalization(keyboard == .emailAddress ? .never : .words)
             .autocorrectionDisabled()
             .submitLabel(.continue)
+            .focused($focus, equals: field)
+            .font(.body)
+            .padding(.horizontal, 16)
+            .frame(height: 50)
+            .background(Color.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(focus == field ? Color.brand : Color.clear, lineWidth: 1.5))
+    }
+
+    private func secure(_ placeholder: String, text: Binding<String>, field: Field, content: UITextContentType) -> some View {
+        SecureField(placeholder, text: text)
+            .textContentType(content)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .submitLabel(.go)
             .focused($focus, equals: field)
             .font(.body)
             .padding(.horizontal, 16)

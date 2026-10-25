@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import ClerkKit
 
 /// Settings, laid out like Instagram's: one continuous page, no grouped cards. Small grey headings split it up,
 /// each row is a plain outline icon, a title, and a value or chevron.
@@ -397,6 +398,13 @@ struct AccountView: View {
                     Text(t("account.syncFooter"))
                 }
                 Section {
+                    NavigationLink {
+                        PasswordView()
+                    } label: {
+                        Text(Clerk.shared.user?.passwordEnabled == true ? t("password.change") : t("password.set")).lineLimit(1)
+                    }
+                } footer: { Text(t("password.footer")) }
+                Section {
                     Button(role: .destructive) { confirmDelete = true } label: {
                         HStack {
                             Text(t("account.delete"))
@@ -440,6 +448,80 @@ struct AccountView: View {
                 self.error = error.localizedDescription
             }
             deleting = false
+        }
+    }
+}
+
+
+/// Change the account password, or set one for members who joined with a code, Apple or Google.
+struct PasswordView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var app: AppState
+    @State private var current = ""
+    @State private var new = ""
+    @State private var confirm = ""
+    @State private var saving = false
+    @State private var error: String?
+    private let hasPassword = Clerk.shared.user?.passwordEnabled == true
+
+    private var canSave: Bool {
+        !saving && new.count >= AuthFlow.minPassword && new == confirm && (!hasPassword || !current.isEmpty)
+    }
+
+    var body: some View {
+        Form {
+            if hasPassword {
+                Section {
+                    SecureField(t("password.current"), text: $current).textContentType(.password)
+                }
+            }
+            Section {
+                SecureField(t("auth.newPassword"), text: $new).textContentType(.newPassword)
+                SecureField(t("password.confirm"), text: $confirm).textContentType(.newPassword)
+            } footer: {
+                if !confirm.isEmpty && new != confirm {
+                    Text(t("password.mismatch")).foregroundStyle(Color.bad)
+                } else {
+                    Text(t("auth.passwordHint"))
+                }
+            }
+            if let error {
+                Section { Text(error).foregroundStyle(Color.bad).font(.footnote) }
+            }
+            Section {
+                Button {
+                    save()
+                } label: {
+                    HStack {
+                        Text(t("auth.savePassword"))
+                        Spacer()
+                        if saving { ProgressView() }
+                    }
+                }
+                .disabled(!canSave)
+            } footer: { Text(t("password.signOutOthers")) }
+        }
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled()
+        .navigationTitle(hasPassword ? t("password.change") : t("password.set"))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func save() {
+        guard let user = Clerk.shared.user else { return }
+        saving = true
+        error = nil
+        Task {
+            defer { saving = false }
+            do {
+                _ = try await user.updatePassword(.init(currentPassword: hasPassword ? current : nil, newPassword: new, signOutOfOtherSessions: true))
+                app.showToast(t("password.saved"))
+                dismiss()
+            } catch let e as ClerkAPIError where e.code == "session_reverification_required" {
+                error = t("password.reverify")
+            } catch {
+                self.error = AuthFlow.message(for: error)
+            }
         }
     }
 }
