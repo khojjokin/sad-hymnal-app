@@ -132,6 +132,9 @@ final class AuthFlow: ObservableObject {
         defer { busy = false }
         do {
             try await work()
+        } catch let e as ClerkAPIError where e.code == "session_exists" {
+            // Clerk already holds a session on this phone: that's a sign in, so finish instead of showing an error.
+            self.step = .done
         } catch {
             if AuthFlow.isCancellation(error) { return }
             self.error = AuthFlow.message(for: error)

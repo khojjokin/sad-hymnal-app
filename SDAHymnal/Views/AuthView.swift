@@ -1,9 +1,12 @@
 import SwiftUI
+import ClerkKit
 
 /// Create an account or sign in, full screen: email, then a 6-digit code. Optional; the app works without it.
 struct AuthView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var app: AppState
+    @EnvironmentObject private var auth: AuthStore
+    @EnvironmentObject private var library: Library
     @StateObject private var flow = AuthFlow()
     @FocusState private var focus: Field?
     enum Field { case email, first, last, code }
@@ -58,6 +61,9 @@ struct AuthView: View {
             case .code: focus = .code
             case .done:
                 // Straight back into the app, with a quick "You're in" over it.
+                auth.update(from: Clerk.shared.user)
+                let id = auth.currentUser?.id
+                Task { await library.switchProfile(to: id) }
                 app.showToast(t("auth.toast"))
                 dismiss()
             case .email: break

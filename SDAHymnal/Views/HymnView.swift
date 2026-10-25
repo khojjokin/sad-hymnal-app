@@ -83,11 +83,13 @@ struct HymnView: View {
         .onChange(of: current) { _, _ in opened() }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
+            ReviewPrompt.hymnClosed()
         }
     }
 
     private func opened() {
         library.opened(hymn.number)
+        ReviewPrompt.hymnOpened()
         HymnalAPI.shared.track("open", hymn: hymn.number)
         UIApplication.shared.isIdleTimerDisabled = prefs.keepAwake
     }

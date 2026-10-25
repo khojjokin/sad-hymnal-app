@@ -58,6 +58,8 @@ struct AppHost: View {
         }
         .preferredColorScheme(splash.showing ? .dark : prefs.appearance.colorScheme)
         .task {
+            // Clerk can restore the session before this view exists, so read it now as well as on changes.
+            syncAccount()
             library.attach(auth)
             await Plus.shared.load()
             await app.loadConfig()

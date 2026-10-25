@@ -85,6 +85,8 @@ struct HymnalTabBar: View {
             }
         }
         .padding(.horizontal, 6)
+        // A solid base under the glass so rows scrolling behind don't show through.
+        .background(Color.bg.opacity(0.72), in: RoundedRectangle(cornerRadius: compact ? 23 : 29, style: .continuous))
         .glass(compact ? 23 : 29)
         .shadow(color: .black.opacity(0.12), radius: 16, y: 6)
         .padding(.horizontal, compact ? 70 : 24)

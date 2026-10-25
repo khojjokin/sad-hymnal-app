@@ -8,7 +8,6 @@ struct SettingsView: View {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var library: Library
     @EnvironmentObject private var app: AppState
-    @Environment(\.requestReview) private var requestReview
     @ObservedObject private var plus = Plus.shared
     @ObservedObject private var daily = DailyHymn.shared
     @State private var showAuth = false
@@ -47,7 +46,7 @@ struct SettingsView: View {
                     SettingsDivider()
                     SettingsHeading(t("settings.sec.support"))
                     Link(destination: Self.supportEmail) { SettingsRow(t("settings.support"), symbol: "envelope", external: true) }
-                    Button { requestReview() } label: { SettingsRow(t("settings.rate"), symbol: "star") }
+                    Link(destination: ReviewPrompt.writeReviewURL) { SettingsRow(t("settings.rate"), symbol: "star", external: true) }
                     ShareLink(item: Backend.appStoreURL, message: Text(t("settings.shareMessage"))) {
                         SettingsRow(t("settings.share"), symbol: "square.and.arrow.up")
                     }
