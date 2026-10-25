@@ -35,8 +35,8 @@ final class Library: ObservableObject {
     private weak var auth: AuthStore?
     private var pushTask: Task<Void, Never>?
 
-    static func now() -> String { ISO8601DateFormatter().string(from: Date()) }
-    private static func date(_ s: String) -> Date { ISO8601DateFormatter().date(from: s) ?? .distantPast }
+    nonisolated static func now() -> String { ISO8601DateFormatter().string(from: Date()) }
+    nonisolated private static func date(_ s: String) -> Date { ISO8601DateFormatter().date(from: s) ?? .distantPast }
     private func key(_ profile: String) -> String { "hymnal.library.\(profile)" }
 
     init() { data = load("guest") }
@@ -183,7 +183,7 @@ final class Library: ObservableObject {
         lastSynced = nil
     }
 
-    static func merge(_ a: LibraryData, _ b: LibraryData, preferFirst: Bool = true) -> LibraryData {
+    nonisolated static func merge(_ a: LibraryData, _ b: LibraryData, preferFirst: Bool = true) -> LibraryData {
         let (first, second) = preferFirst ? (a, b) : (b, a)
         var out = first
         let have = Set(first.favourites.map(\.n))
