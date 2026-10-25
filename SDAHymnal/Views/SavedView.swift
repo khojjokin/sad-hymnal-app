@@ -31,6 +31,7 @@ struct SavedView: View {
                 if tab == 0 { hymns } else { lists }
             }
             .listStyle(.insetGrouped)
+            .tracksScroll()
             .navigationTitle(t("tab.saved"))
             .toolbar {
                 if tab == 1 {

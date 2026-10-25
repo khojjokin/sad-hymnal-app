@@ -90,6 +90,7 @@ struct SettingsView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .tracksScroll()
             .navigationTitle(t("tab.settings"))
             .fullScreenCover(isPresented: $showAuth) { AuthView() }
             .alert(t("account.signOutTitle"), isPresented: $confirmSignOut) {

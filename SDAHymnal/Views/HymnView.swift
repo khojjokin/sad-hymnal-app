@@ -44,7 +44,7 @@ struct HymnView: View {
         .navigationTitle("\(hymn.number)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
-        .toolbar(.hidden, for: .tabBar)
+        .hidesTabBar()
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button { withAnimation(.spring(response: 0.3)) { library.toggleSave(hymn.number) }; UIImpactFeedbackGenerator(style: .light).impactOccurred() } label: {

@@ -8,7 +8,7 @@ import { config, db, json } from "./shared.ts";
 // - Hymnal users sign in with SDA Hymnal's Clerk (production clerk.hymnal.qortyn.com, dev for test builds).
 // - The Qortn Console Manager signs in with the Qortn Clerk (clerk.qortyn.com); its admins manage the
 //   hymnal through "console.*" actions.
-// - "config" and "track" also work without signing in, because accounts are optional in the hymnal.
+// - "config", "track" and "trending" also work without signing in, because accounts are optional in the hymnal.
 
 const APP_ISSUERS: Record<string, ReturnType<typeof createRemoteJWKSet>> = {
   "https://clerk.hymnal.qortyn.com": createRemoteJWKSet(new URL("https://clerk.hymnal.qortyn.com/.well-known/jwks.json")),
@@ -105,6 +105,16 @@ async function handle(req: Request, platform: string, note: (action: string, mem
     if (!["open", "share", "save", "card"].includes(kind)) return json({ error: "Unknown event" }, 400);
     await db.from("hymnal_events").insert({ member_id: me && !me.console ? me.id : null, kind, hymn: hymnNo(body.hymn), detail: clean(body.detail, 40) || null, platform });
     return json({ ok: true });
+  }
+
+  if (action === "trending") {
+    // The most sung hymns this week, for Discover. Counts only, nothing about who.
+    const since = new Date(Date.now() - 7 * 864e5).toISOString();
+    const { data } = await db.from("hymnal_events").select("kind,hymn").gte("at", since).not("hymn", "is", null).limit(50000);
+    const score: Record<number, number> = {};
+    for (const e of data ?? []) score[e.hymn] = (score[e.hymn] ?? 0) + (e.kind === "open" ? 1 : 3);
+    const hymns = Object.entries(score).sort((x, y) => y[1] - x[1]).slice(0, 10).map(([n, s]) => ({ n: Number(n), score: s }));
+    return json({ hymns });
   }
 
   if (!me) return json({ error: "Not signed in" }, 401);

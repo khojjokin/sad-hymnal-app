@@ -56,10 +56,6 @@ extension View {
             .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).stroke(Color.stroke, lineWidth: 1))
     }
 
-    /// The tab bar shrinks while scrolling down on iOS 26.
-    @ViewBuilder func minimizingTabBar() -> some View {
-        if #available(iOS 26.0, *) { self.tabBarMinimizeBehavior(.onScrollDown) } else { self }
-    }
 }
 
 struct PressableStyle: ButtonStyle {

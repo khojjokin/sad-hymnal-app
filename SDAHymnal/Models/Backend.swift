@@ -88,6 +88,12 @@ final class HymnalAPI {
         return RemoteConfig(c)
     }
 
+    /// The most sung hymns this week (for Discover). Empty when offline.
+    func trending() async -> [Int] {
+        guard let j = try? await call("trending", token: nil), let rows = j["hymns"] as? [[String: Any]] else { return [] }
+        return rows.compactMap { ($0["n"] as? NSNumber)?.intValue }
+    }
+
     /// Counts opens, saves and shares so the console can see the most loved hymns. Never blocks the app.
     func track(_ kind: String, hymn: Int?, detail: String? = nil) {
         Task { @MainActor in

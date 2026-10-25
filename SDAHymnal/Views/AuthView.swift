@@ -8,27 +8,51 @@ struct AuthView: View {
     enum Field { case email, first, last, code }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            LinearGradient(colors: [Color.sea[0], Color.sea[1], Color.bg], startPoint: .top, endPoint: .center)
-                .ignoresSafeArea()
+        ZStack(alignment: .top) {
+            Color.bg.ignoresSafeArea()
+            // A quiet photo at the top that fades into the page.
+            ZStack {
+                Photo(key: "tileHymnal")
+                LinearGradient(colors: [Color.sea[0].opacity(0.35), Color.bg.opacity(0.6), Color.bg], startPoint: .top, endPoint: .bottom)
+            }
+            .frame(height: 380)
+            .frame(maxWidth: .infinity)
+            .clipped()
+            .ignoresSafeArea(edges: .top)
+
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    SDALogo(size: 52)
-                        .padding(.top, 60)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(title).font(.serif(32, .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.7)
-                        Text(subtitle).font(.body).foregroundStyle(.white.opacity(0.85))
+                VStack(spacing: 22) {
+                    VStack(spacing: 14) {
+                        SDALogo(size: 58, color: .white)
+                            .padding(18)
+                            .background(LinearGradient(colors: Color.sea, startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                            .shadow(color: Color.sea[0].opacity(0.45), radius: 18, y: 8)
+                        VStack(spacing: 6) {
+                            Text(title).font(.serif(32, .bold)).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.7)
+                            Text(subtitle).font(.subheadline).foregroundStyle(Color.inkSoft).multilineTextAlignment(.center)
+                        }
                     }
-                    VStack(spacing: 14) { content }
-                        .padding(20)
-                        .background(Color.bg, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-                        .shadow(color: .black.opacity(0.12), radius: 20, y: 8)
+                    .padding(.top, 70)
+
+                    VStack(spacing: 12) { content }
+                        .padding(18)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(Color.stroke, lineWidth: 1))
+
                     if let error = flow.error {
                         Label(error, systemImage: "exclamationmark.circle.fill")
                             .font(.footnote.weight(.medium)).foregroundStyle(Color.bad)
                             .transition(.opacity)
                     }
-                    Text(t("auth.optional")).font(.footnote).foregroundStyle(Color.inkSoft).frame(maxWidth: .infinity)
+                    if flow.step == .email {
+                        VStack(spacing: 8) {
+                            perk("icloud.fill", t("auth.perkSync"))
+                            perk("bookmark.fill", t("auth.perkSave"))
+                            perk("lock.fill", t("auth.perkPrivate"))
+                        }
+                        .padding(.horizontal, 6)
+                    }
+                    Text(t("auth.optional")).font(.footnote).foregroundStyle(Color.inkFaint).multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 22)
                 .padding(.bottom, 40)
@@ -36,9 +60,11 @@ struct AuthView: View {
                 .animation(.easeOut(duration: 0.2), value: flow.error)
             }
             .scrollDismissesKeyboard(.interactively)
+            .scrollIndicators(.hidden)
+
             HStack {
                 if flow.step != .email && flow.step != .done {
-                    circleButton("chevron.left", label: t("common.back")) { flow.back(); focus = .email }
+                    circleButton("chevron.left", label: t("common.back")) { flow.back(); focus = nil }
                 }
                 Spacer()
                 circleButton("xmark", label: t("common.close")) { dismiss() }
@@ -46,7 +72,6 @@ struct AuthView: View {
             .padding(.horizontal, 18)
             .padding(.top, 8)
         }
-        .onAppear { focus = .email }
         .onChange(of: flow.step) { _, step in
             switch step {
             case .name: focus = .first
@@ -79,19 +104,29 @@ struct AuthView: View {
     @ViewBuilder private var content: some View {
         switch flow.step {
         case .email:
-            field(t("auth.email"), text: $flow.email, field: .email, keyboard: .emailAddress, content: .emailAddress)
-                .onSubmit { Task { await flow.continueWithEmail() } }
-            Button { Task { await flow.continueWithEmail() } } label: { busyLabel(t("auth.continue")) }
-                .buttonStyle(PrimaryButtonStyle())
-                .disabled(flow.busy)
             if AuthFlow.appleEnabled {
-                HStack { line; Text(t("auth.or")).font(.footnote).foregroundStyle(Color.inkSoft); line }
                 Button { Task { await flow.continueWithApple() } } label: {
-                    Label(t("auth.apple"), systemImage: "apple.logo")
+                    socialLabel(Image(systemName: "apple.logo").font(.system(size: 18, weight: .semibold)), t("auth.apple"))
                 }
                 .buttonStyle(PrimaryButtonStyle(tint: Color.ink, foreground: Color.bg))
                 .disabled(flow.busy)
             }
+            if AuthFlow.googleEnabled {
+                Button { Task { await flow.continueWithGoogle() } } label: {
+                    socialLabel(GoogleMark(), t("auth.google"))
+                }
+                .buttonStyle(OutlineButtonStyle())
+                .disabled(flow.busy)
+            }
+            if AuthFlow.appleEnabled || AuthFlow.googleEnabled {
+                HStack(spacing: 10) { line; Text(t("auth.or")).font(.footnote).foregroundStyle(Color.inkSoft); line }
+                    .padding(.vertical, 2)
+            }
+            field(t("auth.email"), text: $flow.email, field: .email, keyboard: .emailAddress, content: .emailAddress)
+                .onSubmit { Task { await flow.continueWithEmail() } }
+            Button { Task { await flow.continueWithEmail() } } label: { busyLabel(t("auth.continueEmail")) }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(flow.busy || flow.email.isEmpty)
         case .name:
             field(t("auth.firstName"), text: $flow.firstName, field: .first, content: .givenName)
                 .onSubmit { focus = .last }
@@ -119,6 +154,23 @@ struct AuthView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
+        }
+    }
+
+    private func socialLabel<I: View>(_ icon: I, _ text: String) -> some View {
+        HStack(spacing: 10) {
+            icon.frame(width: 22, height: 22)
+            Text(text).lineLimit(1)
+        }
+    }
+
+    private func perk(_ symbol: String, _ text: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol).font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.brand)
+                .frame(width: 28, height: 28)
+                .background(Color.brand.opacity(0.12), in: Circle())
+            Text(text).font(.subheadline).foregroundStyle(Color.ink).lineLimit(1)
+            Spacer()
         }
     }
 
@@ -184,5 +236,33 @@ struct CodeField: View {
         .contentShape(Rectangle())
         .onTapGesture { focused = true }
         .onAppear { focused = true }
+    }
+}
+
+/// A plain bordered button (Continue with Google).
+struct OutlineButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline)
+            .lineLimit(1)
+            .foregroundStyle(Color.ink)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 15)
+            .background(Color.bg, in: Capsule())
+            .overlay(Capsule().stroke(Color.stroke, lineWidth: 1.5))
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+    }
+}
+
+/// A simple round "G" for the Google button.
+struct GoogleMark: View {
+    var body: some View {
+        Text("G")
+            .font(.system(size: 15, weight: .bold, design: .rounded))
+            .foregroundStyle(.white)
+            .frame(width: 22, height: 22)
+            .background(Color(hex: "4285F4"), in: Circle())
+            .accessibilityHidden(true)
     }
 }

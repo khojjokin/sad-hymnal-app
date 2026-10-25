@@ -8,6 +8,7 @@ struct SDAHymnalApp: App {
     @StateObject private var library = Library()
     @StateObject private var app = AppState()
     @StateObject private var splash = SplashGate()
+    @StateObject private var bar = TabBarState()
     init() {
         Clerk.configure(publishableKey: Backend.clerkPublishableKey)
     }
@@ -19,6 +20,7 @@ struct SDAHymnalApp: App {
                 .environmentObject(auth)
                 .environmentObject(library)
                 .environmentObject(app)
+                .environmentObject(bar)
                 .environment(Clerk.shared)
                 .tint(.brand)
         }
@@ -110,6 +112,7 @@ struct RootView: View {
     @EnvironmentObject private var app: AppState
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var prefs: Prefs
+    @EnvironmentObject private var bar: TabBarState
 
     var body: some View {
         Group {
@@ -126,22 +129,23 @@ struct RootView: View {
         .id(prefs.language)
     }
 
+    /// The four tabs stay alive (so each keeps its place) under one custom bar: all tabs always shown,
+    /// no sliding bubble, and it shrinks while you scroll down, like Instagram's.
     private var tabs: some View {
-        TabView(selection: $app.tab) {
-            HomeView()
-                .tabItem { Label(t("tab.hymnal"), systemImage: "music.note.list") }
-                .tag(AppState.Tab.hymnal)
-            DiscoverView()
-                .tabItem { Label(t("tab.discover"), systemImage: "sparkles") }
-                .tag(AppState.Tab.discover)
-            SavedView()
-                .tabItem { Label(t("tab.saved"), systemImage: "bookmark.fill") }
-                .tag(AppState.Tab.saved)
-            SettingsView()
-                .tabItem { Label(t("tab.settings"), systemImage: "gearshape.fill") }
-                .tag(AppState.Tab.settings)
+        ZStack {
+            page(.hymnal) { HomeView() }
+            page(.discover) { DiscoverView() }
+            page(.saved) { SavedView() }
+            page(.settings) { SettingsView() }
         }
-        .minimizingTabBar()
+        .overlay(alignment: .bottom) {
+            if !bar.hidden {
+                HymnalTabBar()
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: bar.hidden)
+        .ignoresSafeArea(.keyboard)
         .safeAreaInset(edge: .top, spacing: 0) {
             if let text = app.config.announcement, !text.isEmpty, app.hiddenAnnouncement != text {
                 AnnouncementBanner(text: text) { withAnimation { app.hiddenAnnouncement = text } }
@@ -156,6 +160,18 @@ struct RootView: View {
         } message: {
             Text(auth.state.notices.first?.body ?? "")
         }
+        .onChange(of: app.tab) { _, tab in bar.current = tab; bar.setCompact(false) }
+    }
+
+    private func page<V: View>(_ tab: AppState.Tab, @ViewBuilder _ content: () -> V) -> some View {
+        let on = app.tab == tab
+        return content()
+            .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: bar.hidden ? 0 : HymnalTabBar.reserved) }
+            .environment(\.hostTab, tab)
+            .opacity(on ? 1 : 0)
+            .allowsHitTesting(on)
+            .accessibilityHidden(!on)
+            .zIndex(on ? 1 : 0)
     }
 }
 

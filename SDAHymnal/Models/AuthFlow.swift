@@ -24,8 +24,9 @@ final class AuthFlow: ObservableObject {
     private var signIn: SignIn?
     private var signUp: SignUp?
 
-    /// Apple needs the live instance (the development one has no Apple key for this app).
-    static var appleEnabled: Bool { Backend.useLiveSignIn && Clerk.shared.environment?.userSettings.social["oauth_apple"]?.enabled ?? false }
+    /// Apple and Google show unless the sign-in service has them switched off.
+    static var appleEnabled: Bool { Clerk.shared.environment?.userSettings.social["oauth_apple"]?.enabled ?? true }
+    static var googleEnabled: Bool { Clerk.shared.environment?.userSettings.social["oauth_google"]?.enabled ?? true }
 
     var trimmedEmail: String { email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
     var emailLooksValid: Bool {
@@ -91,13 +92,30 @@ final class AuthFlow: ObservableObject {
         }
     }
 
+    /// Apple: the native sheet on the live service; the web flow on the development one (which has no Apple key for this app).
     func continueWithApple() async {
         await run {
-            let result = try await Clerk.shared.auth.signInWithApple()
-            switch result {
-            case .signIn(let s): if s.status == .complete { self.step = .done } else { throw FlowError(t("auth.notFinished")) }
-            case .signUp(let s): if s.status == .complete { self.step = .done } else { throw FlowError(t("auth.notFinished")) }
+            let result: TransferFlowResult
+            if Backend.useLiveSignIn {
+                result = try await Clerk.shared.auth.signInWithApple()
+            } else {
+                result = try await Clerk.shared.auth.signInWithOAuth(provider: .apple)
             }
+            try self.finish(result)
+        }
+    }
+
+    func continueWithGoogle() async {
+        await run {
+            let result = try await Clerk.shared.auth.signInWithOAuth(provider: .google)
+            try self.finish(result)
+        }
+    }
+
+    private func finish(_ result: TransferFlowResult) throws {
+        switch result {
+        case .signIn(let s): if s.status == .complete { step = .done } else { throw FlowError(t("auth.notFinished")) }
+        case .signUp(let s): if s.status == .complete { step = .done } else { throw FlowError(t("auth.notFinished")) }
         }
     }
 
@@ -123,6 +141,7 @@ final class AuthFlow: ObservableObject {
     static func isCancellation(_ error: Error) -> Bool {
         let ns = error as NSError
         if ns.domain == "com.apple.AuthenticationServices.AuthorizationError" && ns.code == 1001 { return true }
+        if ns.domain == "com.apple.AuthenticationServices.WebAuthenticationSession" && ns.code == 1 { return true }
         return error is CancellationError
     }
 
