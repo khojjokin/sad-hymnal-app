@@ -1,0 +1,62 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:N;src:url(Newsreader-Regular.ttf)}
+@font-face{font-family:N;font-weight:600;src:url(Newsreader-SemiBold.ttf)}
+@font-face{font-family:N;font-weight:700;src:url(Newsreader-Bold.ttf)}
+@font-face{font-family:N;font-style:italic;src:url(Newsreader-Italic.ttf)}
+@font-face{font-family:J;src:url(PlusJakartaSans-Regular.ttf)}
+@font-face{font-family:J;font-weight:600;src:url(PlusJakartaSans-SemiBold.ttf)}
+@font-face{font-family:J;font-weight:800;src:url(PlusJakartaSans-ExtraBold.ttf)}
+*{margin:0;box-sizing:border-box}
+body{width:var(--w);height:var(--h);overflow:hidden;font-family:J;
+ background:radial-gradient(120% 90% at 18% 10%,#123e63 0%,#0a2238 45%,#050d17 100%);color:#fff;position:relative}
+.staff{position:absolute;left:-5%;width:110%;height:46%;top:46%;opacity:.16}
+.glow{position:absolute;width:60%;height:80%;right:-8%;top:-10%;background:radial-gradient(closest-side,rgba(224,179,84,.30),transparent);filter:blur(20px)}
+.left{position:absolute;left:7%;top:50%;transform:translateY(-50%);width:44%}
+.badge{display:flex;align-items:center;gap:calc(var(--u)*1.4);margin-bottom:calc(var(--u)*3)}
+.badge img.icon{width:calc(var(--u)*9);height:calc(var(--u)*9);border-radius:22%;box-shadow:0 calc(var(--u)*1) calc(var(--u)*4) rgba(0,0,0,.45)}
+.badge .name{font-weight:800;font-size:calc(var(--u)*3.2);letter-spacing:.02em}
+.badge .by{font-size:calc(var(--u)*1.8);color:rgba(255,255,255,.6);margin-top:calc(var(--u)*.4)}
+h1{font-family:N;font-weight:600;font-size:calc(var(--u)*9.4);line-height:1.02;letter-spacing:-.015em}
+h1 em{font-style:italic;font-weight:400;color:#F5D78E}
+p.sub{font-size:calc(var(--u)*2.6);color:rgba(255,255,255,.72);margin-top:calc(var(--u)*3);line-height:1.45;max-width:90%}
+.cards{position:absolute;right:6%;top:50%;transform:translateY(-50%);width:46%;height:86%}
+.card{position:absolute;width:calc(var(--u)*30);height:calc(var(--u)*37.5);border-radius:calc(var(--u)*2.6);padding:calc(var(--u)*2.8);
+ box-shadow:0 calc(var(--u)*3) calc(var(--u)*8) rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.card .top{display:flex;align-items:center;gap:calc(var(--u)*.8);font-weight:600;font-size:calc(var(--u)*1.25)}
+.card .top img{width:calc(var(--u)*2.2)}
+.card .num{margin-left:auto;font-family:N;font-weight:600;font-size:calc(var(--u)*1.6)}
+.card .verse{font-family:N;font-size:calc(var(--u)*2.05);line-height:1.42;margin-top:auto}
+.card .bar{width:calc(var(--u)*3.4);height:2px;margin:calc(var(--u)*2) 0 calc(var(--u)*1.2)}
+.card .title{font-family:N;font-weight:600;font-size:calc(var(--u)*1.75)}
+.card .by{font-family:N;font-style:italic;font-size:calc(var(--u)*1.2);opacity:.7;margin-top:calc(var(--u)*.4)}
+.sea{background:linear-gradient(135deg,#0B4F75,#0B6F9F,#1288B8);transform:rotate(-8deg);left:2%;top:12%}
+.gold{background:linear-gradient(135deg,#0B1B2E,#13304D,#0B1B2E);color:#F5E6C4;left:31%;top:4%;z-index:3;transform:rotate(2deg)}
+.gold:after{content:"";position:absolute;inset:calc(var(--u)*1.4);border:1px solid rgba(224,179,84,.55);border-radius:calc(var(--u)*1.4);pointer-events:none}
+.gold .num,.gold .bar{color:#E0B354;background:#E0B354}.gold .num{background:none}
+.paper{background:linear-gradient(135deg,#FBF6EC,#EFE5D2);color:#2A2118;left:54%;top:16%;transform:rotate(9deg);z-index:2}
+.paper .num{color:#0B6F9F}.paper .bar{background:#0B6F9F}
+.sea .bar{background:rgba(255,255,255,.75)}
+.plus{position:absolute;right:calc(var(--u)*2);bottom:calc(var(--u)*2);font-weight:800;font-size:calc(var(--u)*1);letter-spacing:.08em;padding:calc(var(--u)*.5) calc(var(--u)*1);border-radius:99px;background:linear-gradient(135deg,#E0B354,#B8862F);color:#fff}
+</style></head><body>
+<div class="glow"></div>
+<svg class="staff" viewBox="0 0 1000 200" preserveAspectRatio="none">
+ <g fill="none" stroke="#9fd3f0" stroke-width="1.2">
+ <path d="M0 40 C250 0 500 90 1000 30"/><path d="M0 70 C250 30 500 120 1000 60"/><path d="M0 100 C250 60 500 150 1000 90"/><path d="M0 130 C250 90 500 180 1000 120"/><path d="M0 160 C250 120 500 210 1000 150"/></g>
+</svg>
+<div class="left">
+ <div class="badge"><img class="icon" src="icon.png"><div><div class="name">SDA Hymnal</div><div class="by">For worship, home and the road</div></div></div>
+ <h1>Sing every hymn,<br><em>every day.</em></h1>
+ <p class="sub">All 695 hymns, three hymns of the day, a verse to carry with you, and cards made for sharing.</p>
+</div>
+<div class="cards">
+ <div class="card sea"><div class="top"><img src="logo.png">SDA Hymnal<span class="num">108</span></div>
+  <div class="verse">Amazing grace! How sweet the sound<br>that saved a wretch like me!<br>I once was lost, but now am found;<br>was blind, but now I see.</div>
+  <div class="bar"></div><div class="title">Amazing Grace</div><div class="by">John Newton</div></div>
+ <div class="card gold"><div class="top"><img src="logo.png">SDA Hymnal<span class="num">530</span></div>
+  <div class="verse">When peace, like a river, attendeth my way,<br>when sorrows like sea billows roll;<br>whatever my lot, thou hast taught me to say,<br>It is well, it is well with my soul.</div>
+  <div class="bar"></div><div class="title">It Is Well With My Soul</div><div class="by">Horatio G. Spafford</div><span class="plus">PLUS</span></div>
+ <div class="card paper"><div class="top"><img src="logo.png" style="filter:invert(1) brightness(.2)">SDA Hymnal<span class="num">73</span></div>
+  <div class="verse">Holy, holy, holy! Lord God Almighty!<br>Early in the morning our song shall rise to Thee;</div>
+  <div class="bar"></div><div class="title">Holy, Holy, Holy</div><div class="by">Reginald Heber</div></div>
+</div>
+</body></html>
