@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBG</string>
+	</dict>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>SDA Hymnal saves the hymn cards you make to your photos.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mojo.sdahymnal.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>sdahymnal</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

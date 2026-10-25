@@ -1,0 +1,7 @@
+{
+  "images" : [
+    { "filename" : "qortn-mark.png", "idiom" : "universal" },
+    { "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ], "filename" : "qortn-mark-white.png", "idiom" : "universal" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

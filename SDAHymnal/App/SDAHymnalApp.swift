@@ -1,0 +1,185 @@
+import SwiftUI
+import ClerkKit
+
+@main
+struct SDAHymnalApp: App {
+    @StateObject private var prefs = Prefs.shared
+    @StateObject private var auth = AuthStore()
+    @StateObject private var library = Library()
+    @StateObject private var app = AppState()
+    @StateObject private var splash = SplashGate()
+    init() {
+        Clerk.configure(publishableKey: Backend.clerkPublishableKey)
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            AppHost(splash: splash)
+                .environmentObject(prefs)
+                .environmentObject(auth)
+                .environmentObject(library)
+                .environmentObject(app)
+                .environment(Clerk.shared)
+                .tint(.brand)
+        }
+    }
+}
+
+/// Holds the splash over the app and keeps the account, saved hymns and console settings in step.
+struct AppHost: View {
+    @ObservedObject var splash: SplashGate
+    @EnvironmentObject private var prefs: Prefs
+    @EnvironmentObject private var auth: AuthStore
+    @EnvironmentObject private var library: Library
+    @EnvironmentObject private var app: AppState
+    @Environment(Clerk.self) private var clerk
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        ZStack {
+            if !splash.showing {
+                RootView().transition(.opacity)
+            }
+            if splash.showing {
+                SplashView { splash.finish() }
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
+        }
+        .preferredColorScheme(splash.showing ? .dark : prefs.appearance.colorScheme)
+        .task {
+            library.attach(auth)
+            await app.loadConfig()
+        }
+        .onChange(of: clerk.user?.id) { _, _ in syncAccount() }
+        .onChange(of: clerk.isLoaded) { _, loaded in if loaded { syncAccount() } }
+        .onChange(of: scenePhase) { _, phase in
+            splash.phaseChanged(phase)
+            if phase == .active {
+                Task {
+                    await app.loadConfig()
+                    await auth.refresh()
+                    await library.pull()
+                }
+            }
+        }
+        .onOpenURL { url in app.handle(url) }
+    }
+
+    private func syncAccount() {
+        auth.update(from: clerk.user)
+        Task { await library.switchProfile(to: auth.currentUser?.id) }
+    }
+}
+
+/// App-wide state: which tab is showing, the console's settings, and hymns opened from a link.
+@MainActor
+final class AppState: ObservableObject {
+    enum Tab: Hashable { case hymnal, discover, saved, settings }
+    @Published var tab: Tab = .hymnal
+    @Published var config = RemoteConfig()
+    @Published var hiddenAnnouncement: String?
+    @Published var hymnalPath = NavigationPath()
+
+    func loadConfig() async {
+        if let c = await HymnalAPI.shared.config() { config = c }
+    }
+
+    var needsUpdate: Bool {
+        guard let min = config.minVersion, !min.isEmpty else { return false }
+        return Backend.appVersion.compare(min, options: .numeric) == .orderedAscending
+    }
+
+    /// sdahymnal://hymn/100 opens that hymn.
+    func handle(_ url: URL) {
+        guard url.scheme == "sdahymnal" else { return }
+        let parts = ([url.host ?? ""] + url.pathComponents).filter { $0 != "/" && !$0.isEmpty }
+        if parts.first == "hymn", let n = parts.dropFirst().first.flatMap({ Int($0) }), HymnBook.shared.hymn(n) != nil {
+            tab = .hymnal
+            hymnalPath = NavigationPath([n])
+        }
+    }
+
+    func open(_ n: Int) {
+        tab = .hymnal
+        hymnalPath = NavigationPath([n])
+    }
+}
+
+struct RootView: View {
+    @EnvironmentObject private var app: AppState
+    @EnvironmentObject private var auth: AuthStore
+    @EnvironmentObject private var prefs: Prefs
+
+    var body: some View {
+        Group {
+            if let message = app.config.maintenance, !message.isEmpty {
+                Blocker(symbol: "wrench.and.screwdriver.fill", title: t("maintenance.title"), message: message)
+            } else if app.needsUpdate {
+                Blocker(symbol: "arrow.down.app.fill", title: t("update.title"), message: t("update.body"), actionTitle: t("update.action")) {
+                    UIApplication.shared.open(Backend.appStoreURL)
+                }
+            } else {
+                tabs
+            }
+        }
+        .id(prefs.language)
+    }
+
+    private var tabs: some View {
+        TabView(selection: $app.tab) {
+            HomeView()
+                .tabItem { Label(t("tab.hymnal"), systemImage: "music.note.list") }
+                .tag(AppState.Tab.hymnal)
+            DiscoverView()
+                .tabItem { Label(t("tab.discover"), systemImage: "sparkles") }
+                .tag(AppState.Tab.discover)
+            SavedView()
+                .tabItem { Label(t("tab.saved"), systemImage: "bookmark.fill") }
+                .tag(AppState.Tab.saved)
+            SettingsView()
+                .tabItem { Label(t("tab.settings"), systemImage: "gearshape.fill") }
+                .tag(AppState.Tab.settings)
+        }
+        .minimizingTabBar()
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if let text = app.config.announcement, !text.isEmpty, app.hiddenAnnouncement != text {
+                AnnouncementBanner(text: text) { withAnimation { app.hiddenAnnouncement = text } }
+            }
+        }
+        .alert(auth.state.notices.first?.title ?? "", isPresented: Binding(
+            get: { !auth.state.notices.isEmpty },
+            set: { _ in })) {
+            Button(t("common.ok")) {
+                if let n = auth.state.notices.first { Task { await auth.acknowledge(n) } }
+            }
+        } message: {
+            Text(auth.state.notices.first?.body ?? "")
+        }
+    }
+}
+
+/// A full screen message (maintenance, or an update that must be installed).
+struct Blocker: View {
+    let symbol: String
+    let title: String
+    let message: String
+    var actionTitle: String? = nil
+    var action: (() -> Void)? = nil
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Spacer()
+            Image(systemName: symbol).font(.system(size: 52)).foregroundStyle(Color.brand)
+            Text(title).font(.serif(28, .semibold)).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.8)
+            Text(message).font(.body).foregroundStyle(Color.inkSoft).multilineTextAlignment(.center)
+            Spacer()
+            if let actionTitle, let action {
+                Button(actionTitle, action: action).buttonStyle(PrimaryButtonStyle())
+            }
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.bg)
+    }
+}
