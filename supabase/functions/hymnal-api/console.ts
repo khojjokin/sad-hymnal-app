@@ -137,35 +137,6 @@ export async function consoleAction(action: string, body: any, admin: Admin): Pr
       return json({ calls: rows.length, errors: errors.length, actions, recentErrors: errors.slice(0, 30) });
     }
 
-    case "console.support.threads": {
-      const { data } = await db.from("hymnal_support_threads").select("*").order("last_at", { ascending: false }).limit(200);
-      return json({ threads: data ?? [] });
-    }
-
-    case "console.support.thread": {
-      const key = String(body.key ?? "");
-      const { data } = await db.from("hymnal_support_messages").select("id,from_team,body,at,admin_email").eq("thread_key", key).order("id").limit(500);
-      await db.from("hymnal_support_threads").update({ unread_team: 0 }).eq("key", key);
-      return json({ messages: data ?? [] });
-    }
-
-    case "console.support.reply": {
-      const key = String(body.key ?? "");
-      const text = String(body.body ?? "").trim().slice(0, 4000);
-      if (!key || !text) return json({ error: "Write a reply first" }, 400);
-      const { data: t } = await db.from("hymnal_support_threads").select("unread_member").eq("key", key).maybeSingle();
-      if (!t) return json({ error: "No such conversation" }, 404);
-      await db.from("hymnal_support_messages").insert({ thread_key: key, from_team: true, body: text, admin_email: admin.email });
-      await db.from("hymnal_support_threads").update({ last_at: new Date().toISOString(), last_body: text.slice(0, 140), unread_member: (t.unread_member ?? 0) + 1 }).eq("key", key);
-      await audit(admin, "support.reply", key.startsWith("m:") ? key.slice(2) : null, { key });
-      return json({ ok: true });
-    }
-
-    case "console.support.close": {
-      await db.from("hymnal_support_threads").update({ status: body.open ? "open" : "closed" }).eq("key", String(body.key ?? ""));
-      return json({ ok: true });
-    }
-
     case "console.activity": {
       const { data } = await db.from("hymnal_admin_actions").select("*").order("at", { ascending: false }).limit(100);
       return json({ actions: data ?? [] });

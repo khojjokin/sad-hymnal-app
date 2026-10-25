@@ -13,7 +13,6 @@ struct SettingsView: View {
     @ObservedObject private var daily = DailyHymn.shared
     @State private var showAuth = false
     @State private var showPlus = false
-    @State private var showSupport = false
     @State private var confirmSignOut = false
 
     var body: some View {
@@ -47,7 +46,7 @@ struct SettingsView: View {
 
                     SettingsDivider()
                     SettingsHeading(t("settings.sec.support"))
-                    Button { showSupport = true } label: { SettingsRow(t("settings.support"), symbol: "bubble.left.and.bubble.right", chevron: true) }
+                    Link(destination: Self.supportEmail) { SettingsRow(t("settings.support"), symbol: "envelope", external: true) }
                     Button { requestReview() } label: { SettingsRow(t("settings.rate"), symbol: "star") }
                     ShareLink(item: Backend.appStoreURL, message: Text(t("settings.shareMessage"))) {
                         SettingsRow(t("settings.share"), symbol: "square.and.arrow.up")
@@ -74,12 +73,21 @@ struct SettingsView: View {
             .navigationTitle(t("tab.settings"))
             .fullScreenCover(isPresented: $showAuth) { AuthView() }
             .fullScreenCover(isPresented: $showPlus) { PlusView() }
-            .fullScreenCover(isPresented: $showSupport) { SupportView() }
             .alert(t("account.signOutTitle"), isPresented: $confirmSignOut) {
                 Button(t("common.cancel"), role: .cancel) {}
                 Button(t("account.signOut"), role: .destructive) { Task { await auth.signOut() } }
             } message: { Text(t("account.signOutBody")) }
         }
+    }
+
+    /// Contact support: an email to the team, with the app version and device filled in.
+    static var supportEmail: URL {
+        let body = "\n\n\nSDA Hymnal \(Backend.appVersion) · \(UIDevice.current.model) · iOS \(UIDevice.current.systemVersion)"
+        var c = URLComponents()
+        c.scheme = "mailto"
+        c.path = "support@qortyn.com"
+        c.queryItems = [URLQueryItem(name: "subject", value: "SDA Hymnal"), URLQueryItem(name: "body", value: body)]
+        return c.url ?? URL(string: "mailto:support@qortyn.com")!
     }
 
     private func appearanceName(_ a: Prefs.Appearance) -> String {
