@@ -24,7 +24,8 @@ final class AuthFlow: ObservableObject {
     private var signIn: SignIn?
     private var signUp: SignUp?
 
-    static var appleEnabled: Bool { Clerk.shared.environment?.userSettings.social["oauth_apple"]?.enabled ?? false }
+    /// Apple needs the live instance (the development one has no Apple key for this app).
+    static var appleEnabled: Bool { Backend.useLiveSignIn && Clerk.shared.environment?.userSettings.social["oauth_apple"]?.enabled ?? false }
 
     var trimmedEmail: String { email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
     var emailLooksValid: Bool {

@@ -37,8 +37,8 @@ struct HomeView: View {
     private var searchBar: some View {
         HStack(spacing: 10) {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(query.isEmpty && !searching ? .white.opacity(0.85) : Color.inkSoft)
-                TextField("", text: $query, prompt: Text(t("home.search")).foregroundStyle(query.isEmpty && !searching ? .white.opacity(0.85) : Color.inkFaint))
+                Image(systemName: "magnifyingglass").foregroundStyle(Color.inkSoft)
+                TextField("", text: $query, prompt: Text(t("home.search")).foregroundStyle(Color.inkSoft))
                     .focused($searching)
                     .submitLabel(.search)
                     .autocorrectionDisabled()
