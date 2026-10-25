@@ -49,6 +49,8 @@ struct AppHost: View {
                 SplashView { splash.finish() }
                     .transition(.opacity)
                     .zIndex(1)
+            } else if splash.covered {
+                SplashCover().zIndex(2)
             }
         }
         .preferredColorScheme(splash.showing ? .dark : prefs.appearance.colorScheme)
