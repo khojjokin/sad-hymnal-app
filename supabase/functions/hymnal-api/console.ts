@@ -22,7 +22,7 @@ export async function consoleAction(action: string, body: any, admin: Admin): Pr
     case "console.overview": {
       const now = Date.now();
       const [members, events, api, deleted] = await Promise.all([
-        db.from("hymnal_members").select("id,created_at,last_seen_at,status,saved_count,lists_count,platform,app_version").limit(100000),
+        db.from("hymnal_members").select("id,created_at,last_seen_at,status,saved_count,lists_count,platform,app_version,plus,is_admin").limit(100000),
         db.from("hymnal_events").select("kind,hymn,at,member_id").gte("at", iso(now - 30 * day)).limit(200000),
         db.from("hymnal_api_requests").select("status,ms").gte("at", iso(now - day)).limit(100000),
         db.from("hymnal_deleted_members").select("id", { count: "exact", head: true }),
@@ -43,6 +43,8 @@ export async function consoleAction(action: string, body: any, admin: Admin): Pr
         activeToday: ms.filter((m: any) => m.last_seen_at && Date.parse(m.last_seen_at) > now - day).length,
         activeThisWeek: ms.filter((m: any) => m.last_seen_at && Date.parse(m.last_seen_at) > now - 7 * day).length,
         blocked: ms.filter((m: any) => m.status !== "active").length,
+        plusMembers: ms.filter((m: any) => m.plus).length,
+        admins: ms.filter((m: any) => m.is_admin).length,
         deleted: deleted.count ?? 0,
         savedHymns: ms.reduce((s: number, m: any) => s + (m.saved_count ?? 0), 0),
         lists: ms.reduce((s: number, m: any) => s + (m.lists_count ?? 0), 0),
@@ -69,7 +71,7 @@ export async function consoleAction(action: string, body: any, admin: Admin): Pr
     }
 
     case "console.users": {
-      let q = db.from("hymnal_members").select("id,name,email,provider,is_admin,status,status_reason,suspended_until,created_at,last_seen_at,saved_count,lists_count,platform,app_version,app_build,device,os_version,country")
+      let q = db.from("hymnal_members").select("id,name,email,provider,is_admin,status,status_reason,suspended_until,created_at,last_seen_at,saved_count,lists_count,platform,app_version,app_build,device,os_version,country,plus,plus_renews")
         .order("created_at", { ascending: false }).limit(500);
       if (body.q) { const t = String(body.q).replace(/[%,()]/g, " ").slice(0, 60); q = q.or(`name.ilike.%${t}%,email.ilike.%${t}%`); }
       const { data } = await q;
@@ -89,6 +91,7 @@ export async function consoleAction(action: string, body: any, admin: Admin): Pr
 
     case "console.user.update": {
       const id = String(body.id ?? "");
+      if (!/^user_[A-Za-z0-9]{10,40}$/.test(id)) return json({ error: "No such member" }, 404);
       const upd: Record<string, unknown> = {};
       if (["active", "suspended", "banned"].includes(body.status)) {
         upd.status = body.status;
@@ -104,6 +107,7 @@ export async function consoleAction(action: string, body: any, admin: Admin): Pr
 
     case "console.notice": {
       const id = String(body.id ?? "");
+      if (!/^user_[A-Za-z0-9]{10,40}$/.test(id)) return json({ error: "No such member" }, 404);
       const title = String(body.title ?? "").trim().slice(0, 120);
       const text = String(body.body ?? "").trim().slice(0, 2000);
       if (!title || !text) return json({ error: "Add a title and a message" }, 400);
@@ -117,7 +121,22 @@ export async function consoleAction(action: string, body: any, admin: Admin): Pr
 
     case "console.config.set": {
       const upd: Record<string, unknown> = { updated_at: new Date().toISOString() };
-      for (const f of CONFIG_FIELDS) if (f in (body.config ?? {})) upd[f] = body.config[f] === "" ? null : body.config[f];
+      const c = body.config ?? {};
+      const text = (v: unknown, max: number) => (v === null || v === "" ? null : String(v).slice(0, max));
+      for (const f of CONFIG_FIELDS) {
+        if (!(f in c)) continue;
+        const v = c[f];
+        switch (f) {
+          case "ads_enabled": case "ads_banner": case "ads_interstitial": upd[f] = v === true; break;
+          case "ads_every": upd[f] = Math.min(20, Math.max(2, Math.trunc(Number(v) || 6))); break;
+          case "featured_hymn": { const n = Math.trunc(Number(v)); upd[f] = v === null || v === "" ? null : (n >= 1 && n <= 695 ? n : null); break; }
+          case "min_version_ios": upd[f] = v === null || v === "" ? null : (/^\d+(\.\d+){0,2}$/.test(String(v)) ? String(v) : null); break;
+          case "ad_banner_unit": case "ad_interstitial_unit":
+            upd[f] = v === null || v === "" ? null : (/^ca-app-pub-\d{16}\/\d{10}$/.test(String(v)) ? String(v) : null); break;
+          case "announcement_until": upd[f] = v === null || v === "" || Number.isNaN(Date.parse(String(v))) ? null : new Date(String(v)).toISOString(); break;
+          default: upd[f] = text(v, 2000);
+        }
+      }
       await db.from("hymnal_config").update(upd).eq("id", 1);
       await audit(admin, "config.set", null, upd);
       return json({ ok: true, config: await config() });

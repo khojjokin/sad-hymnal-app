@@ -47,6 +47,20 @@ function platformOf(req: Request) {
   return "other";
 }
 
+// A simple per-address limit (per server instance) so nobody can flood the API: 120 calls a minute,
+// and 30 a minute for the open "track" counter.
+const hits = new Map<string, { n: number; t: number; track: number }>();
+function limited(req: Request, action: string): boolean {
+  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+  const now = Date.now();
+  let h = hits.get(ip);
+  if (!h || now - h.t > 60_000) { h = { n: 0, t: now, track: 0 }; hits.set(ip, h); }
+  h.n++;
+  if (action === "track") h.track++;
+  if (hits.size > 5000) for (const [k, v] of hits) if (now - v.t > 60_000) hits.delete(k);
+  return h.n > 120 || h.track > 30;
+}
+
 const clean = (s: unknown, max: number) => String(s ?? "").replace(/\u0000/g, "").trim().slice(0, max);
 const hymnNo = (n: unknown) => { const v = Math.trunc(Number(n)); return v >= 1 && v <= 695 ? v : null; };
 
@@ -103,6 +117,8 @@ async function handle(req: Request, platform: string, note: (action: string, mem
   if (Number(req.headers.get("content-length") ?? 0) > 500_000) return json({ error: "That's too large to send." }, 413);
   const body = await req.json().catch(() => ({}));
   const action = String(body.action ?? "");
+  if (!/^[a-z.]{1,40}$/i.test(action)) return json({ error: "Unknown action" }, 400);
+  if (limited(req, action)) return json({ error: "Too many requests. Please wait a moment." }, 429);
   const me = await caller(req);
   note(action, me?.id ?? null);
 
@@ -157,6 +173,9 @@ async function handle(req: Request, platform: string, note: (action: string, mem
       if (typeof body.os === "string") row.os_version = clean(body.os, 30) || null;
       if (typeof body.device === "string") row.device = clean(body.device, 40) || null;
       if (typeof body.country === "string" && /^[A-Z]{2}$/.test(body.country)) row.country = body.country;
+      // Plus as the App Store told the app (shown in the console; the app checks the App Store itself).
+      if (typeof body.plus === "boolean") row.plus = body.plus;
+      if (typeof body.plusRenews === "string" && !Number.isNaN(Date.parse(body.plusRenews))) row.plus_renews = new Date(body.plusRenews).toISOString();
       await db.from("hymnal_members").upsert(row);
       const block = existing?.is_admin ? null : await blocked(me.id);
       const { data: notices } = await db.from("hymnal_notices").select("id,kind,title,body").eq("member_id", me.id).is("read_at", null).order("created_at").limit(10);
@@ -214,5 +233,9 @@ Deno.serve(async (req: Request) => {
   }
   db.from("hymnal_api_requests").insert({ action: action.slice(0, 40), member_id: memberId, status: res.status, ms: Date.now() - started, platform })
     .then(() => {}, () => {});
-  return res;
+  const headers = new Headers(res.headers);
+  headers.set("Cache-Control", "no-store");
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "no-referrer");
+  return new Response(res.body, { status: res.status, headers });
 });

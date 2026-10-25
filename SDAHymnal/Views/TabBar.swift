@@ -14,7 +14,8 @@ final class TabBarState: ObservableObject {
 
     func setCompact(_ value: Bool) {
         guard compact != value else { return }
-        withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) { compact = value }
+        // Slow and soft, like Instagram's bar settling as you scroll.
+        withAnimation(.smooth(duration: 0.55)) { compact = value }
     }
 }
 
@@ -28,7 +29,7 @@ extension EnvironmentValues {
 }
 
 /// The app's bottom bar: every tab always showing, the chosen one in sea blue (no sliding bubble).
-/// Scrolling down shrinks it to icons only; scrolling up brings the labels back.
+/// Icons only. Scrolling down slowly shrinks it into a small pill; scrolling up brings it back.
 struct HymnalTabBar: View {
     @EnvironmentObject private var app: AppState
     @EnvironmentObject private var bar: TabBarState
@@ -69,20 +70,13 @@ struct HymnalTabBar: View {
                     }
                     bar.setCompact(false)
                 } label: {
-                    VStack(spacing: 3) {
-                        Image(systemName: on ? item.filled : item.symbol)
-                            .font(.system(size: compact ? 19 : 21, weight: on ? .semibold : .regular))
-                            .frame(height: 24)
-                        if !compact {
-                            Text(item.title)
-                                .font(.system(size: 10.5, weight: on ? .semibold : .medium))
-                                .lineLimit(1)
-                                .transition(.opacity)
-                        }
-                    }
-                    .foregroundStyle(on ? Color.brand : Color.inkSoft)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: compact ? 46 : 60)
+                    // Icons only, no names under them.
+                    Image(systemName: on ? item.filled : item.symbol)
+                        .font(.system(size: 22, weight: on ? .semibold : .regular))
+                        .scaleEffect(compact ? 0.86 : 1)
+                        .foregroundStyle(on ? Color.brand : Color.inkSoft)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: compact ? 46 : 58)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -91,9 +85,9 @@ struct HymnalTabBar: View {
             }
         }
         .padding(.horizontal, 6)
-        .glass(compact ? 23 : 30)
+        .glass(compact ? 23 : 29)
         .shadow(color: .black.opacity(0.12), radius: 16, y: 6)
-        .padding(.horizontal, compact ? 64 : 14)
+        .padding(.horizontal, compact ? 70 : 24)
         .padding(.bottom, 4)
     }
 }

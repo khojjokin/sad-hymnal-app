@@ -22,8 +22,7 @@ final class Plus: ObservableObject {
 
     init() {
         purchased = UserDefaults.standard.bool(forKey: "hymnal.plus")
-        adminGrant = UserDefaults.standard.bool(forKey: "hymnal.plus.admin")
-        isPlus = purchased || adminGrant
+        isPlus = purchased
         updates = Task { [weak self] in
             for await result in Transaction.updates {
                 if case .verified(let t) = result { await t.finish() }
@@ -59,7 +58,7 @@ final class Plus: ObservableObject {
     func setAdmin(_ on: Bool) {
         adminGrant = on
         isPlus = purchased || on
-        UserDefaults.standard.set(on, forKey: "hymnal.plus.admin")
+        // Never saved on the phone: admin Plus only comes from the server for the signed in account.
     }
 
     func subscribe() async -> Bool {

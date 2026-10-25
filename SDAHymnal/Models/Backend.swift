@@ -147,6 +147,9 @@ final class HymnalAPI {
         let os = await MainActor.run { "iOS " + UIDevice.current.systemVersion }
         var body: [String: Any] = ["provider": provider, "appVersion": Backend.appVersion, "appBuild": Backend.appBuild, "device": device, "os": os]
         if let region = Locale.current.region?.identifier, region.count == 2 { body["country"] = region }
+        let (plus, renews) = await MainActor.run { (Plus.shared.purchased, Plus.shared.renews) }
+        body["plus"] = plus
+        if let renews { body["plusRenews"] = ISO8601DateFormatter().string(from: renews) }
         let j = try await call("me", token: token, body)
         let notices = (j["notices"] as? [[String: Any]] ?? []).compactMap { n -> MemberNotice? in
             guard let id = (n["id"] as? NSNumber)?.intValue, let t = n["title"] as? String, let b = n["body"] as? String else { return nil }

@@ -103,22 +103,26 @@ struct HymnView: View {
     // MARK: Parts
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(hymn.section.isEmpty ? t("hymn.hymn") : hymn.section)
-                .font(.caption.weight(.semibold)).textCase(.uppercase).tracking(1.2)
-                .foregroundStyle(Color.brand).lineLimit(1)
-            HStack(alignment: .firstTextBaseline, spacing: 14) {
-                Text("\(hymn.number)").font(.serif(64, .semibold)).monospacedDigit().foregroundStyle(Color.brand)
-                Spacer()
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Text("\(hymn.number)")
+                    .font(.serif(20, .semibold)).monospacedDigit()
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14).frame(height: 36)
+                    .background(LinearGradient(colors: Color.sea, startPoint: .topLeading, endPoint: .bottomTrailing), in: Capsule())
+                Text(hymn.section.isEmpty ? t("hymn.hymn") : hymn.section)
+                    .font(.caption.weight(.semibold)).textCase(.uppercase).tracking(1.1)
+                    .foregroundStyle(Color.inkSoft).lineLimit(1)
             }
-            Text(hymn.title).font(.serif(30, .semibold)).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.6)
+            Text(hymn.title).font(.serif(32, .semibold)).foregroundStyle(Color.ink).lineLimit(1).minimumScaleFactor(0.6)
             if !hymn.author.isEmpty {
                 Text(hymn.author).font(.serif(16).italic()).foregroundStyle(Color.inkSoft).lineLimit(1)
             }
+            Capsule().fill(Color.brand.opacity(0.35)).frame(width: 44, height: 3).padding(.top, 4)
         }
         .padding(.horizontal, 24)
-        .padding(.top, 8)
-        .padding(.bottom, 26)
+        .padding(.top, 10)
+        .padding(.bottom, 28)
     }
 
     private var words: some View {
