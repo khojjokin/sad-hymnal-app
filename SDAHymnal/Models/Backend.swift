@@ -17,7 +17,7 @@ enum Backend {
 
     /// The App Store page.
     static let appStoreURL = URL(string: "https://apps.apple.com/app/id6822432398")!
-    static let privacyURL = URL(string: "https://qortyn.com/privacy")!
+    static let privacyURL = URL(string: "https://qortyn.com/hymnal/privacy")!
 
     static var appVersion: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0" }
     static var appBuild: String { Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1" }
