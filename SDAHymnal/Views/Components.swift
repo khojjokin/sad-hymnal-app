@@ -182,3 +182,27 @@ struct AnnouncementBanner: View {
         .padding(.top, 4)
     }
 }
+
+/// A photo cover for a hymn, like an album cover. Each hymn always gets the same photo.
+struct HymnCover: View {
+    let hymn: Hymn
+    var radius: CGFloat = 14
+    var showsNumber = true
+
+    static let keys = ["tileHymnal", "service", "emptyExplore", "prayer", "hymnOfDay", "bibleStudy", "emptyMusic", "hymnal", "emptyWrite"]
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            Photo(key: Self.keys[hymn.number % Self.keys.count])
+            LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .center, endPoint: .bottom)
+            if showsNumber {
+                Text("\(hymn.number)")
+                    .font(.serif(18, .bold))
+                    .foregroundStyle(.white)
+                    .padding(8)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+        .accessibilityHidden(true)
+    }
+}

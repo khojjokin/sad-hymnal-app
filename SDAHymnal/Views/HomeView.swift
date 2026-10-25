@@ -261,6 +261,7 @@ struct SearchView: View {
     @EnvironmentObject private var library: Library
     @State private var query = ""
     @State private var presented = true
+    @State private var history: [String] = SearchHistory.load()
 
     private let book = HymnBook.shared
 
@@ -269,12 +270,34 @@ struct SearchView: View {
         let found = book.search(q)
         List {
             if q.isEmpty {
+                if !history.isEmpty {
+                    Section {
+                        ForEach(history, id: \.self) { term in
+                            Button { query = term } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "clock.arrow.circlepath").foregroundStyle(Color.inkSoft)
+                                    Text(term).foregroundStyle(Color.ink).lineLimit(1)
+                                    Spacer()
+                                    Image(systemName: "arrow.up.left").font(.caption).foregroundStyle(Color.inkFaint)
+                                }
+                            }
+                        }
+                        .onDelete { idx in history.remove(atOffsets: idx); SearchHistory.save(history) }
+                    } header: {
+                        HStack {
+                            Text(t("search.recent"))
+                            Spacer()
+                            Button(t("home.clear")) { withAnimation { history = []; SearchHistory.save([]) } }
+                                .font(.footnote.weight(.semibold)).textCase(nil)
+                        }
+                    }
+                }
                 let recent = library.recent.prefix(8).compactMap { book.hymn($0) }
-                if recent.isEmpty {
+                if recent.isEmpty && history.isEmpty {
                     Section {
                         Text(t("search.hint")).font(.subheadline).foregroundStyle(Color.inkSoft)
                     }
-                } else {
+                } else if !recent.isEmpty {
                     Section(t("home.recent")) {
                         ForEach(recent) { h in NavigationLink(value: h.number) { HymnRow(hymn: h, subtitle: h.section) } }
                     }
@@ -305,7 +328,28 @@ struct SearchView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
         .searchable(text: $query, isPresented: $presented, placement: .navigationBarDrawer(displayMode: .always), prompt: t("home.search"))
+        .onSubmit(of: .search) { remember() }
+        .onDisappear { remember() }
     }
+}
+
+extension SearchView {
+    /// Keeps what was searched (a word or more, or a number) for next time.
+    private func remember() {
+        let q = query.trimmingCharacters(in: .whitespaces)
+        guard q.count >= 2 || Int(q) != nil else { return }
+        history.removeAll { $0.caseInsensitiveCompare(q) == .orderedSame }
+        history.insert(q, at: 0)
+        if history.count > 10 { history.removeLast(history.count - 10) }
+        SearchHistory.save(history)
+    }
+}
+
+/// The last ten searches, kept on this iPhone.
+enum SearchHistory {
+    private static let key = "hymnal.searches"
+    static func load() -> [String] { UserDefaults.standard.stringArray(forKey: key) ?? [] }
+    static func save(_ items: [String]) { UserDefaults.standard.set(items, forKey: key) }
 }
 
 /// Every hymn, under its heading.

@@ -9,6 +9,7 @@ struct HymnView: View {
     @State private var current: Int
     @State private var showShare = false
     @State private var showLists = false
+    @State private var showActions = false
     @State private var showStory = false
     @State private var copied = false
 
@@ -28,6 +29,7 @@ struct HymnView: View {
                     header
                     if hymn.hasWords { words } else { noWords }
                     if let story = book.story(for: hymn.number) { storyCard(story) }
+                    AdCard().padding(.top, 30)
                     footer
                 }
                 .padding(.bottom, 120)
@@ -36,6 +38,16 @@ struct HymnView: View {
             .background(Color.bg)
             .id(current)
 
+            CenteredOverlay(isPresented: $showActions) {
+                HymnActions(hymn: hymn, shareText: shareText) { action in
+                    showActions = false
+                    switch action {
+                    case .share: showShare = true
+                    case .list: showLists = true
+                    case .copy: UIPasteboard.general.string = shareText; copied = true
+                    }
+                }
+            }
             CenteredOverlay(isPresented: $showLists) {
                 AddToListCard(hymn: hymn.number, isPresented: $showLists)
             }
@@ -52,16 +64,8 @@ struct HymnView: View {
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .accessibilityLabel(library.isSaved(hymn.number) ? t("hymn.unsave") : t("hymn.save"))
-                Menu {
-                    Button { showShare = true } label: { Label(t("hymn.shareCard"), systemImage: "photo.on.rectangle.angled") }
-                    ShareLink(item: shareText) { Label(t("hymn.shareText"), systemImage: "square.and.arrow.up") }
-                    Button { showLists = true } label: { Label(t("hymn.addToList"), systemImage: "text.badge.plus") }
-                    if hymn.hasWords {
-                        Button { UIPasteboard.general.string = shareText; copied = true } label: { Label(t("hymn.copy"), systemImage: "doc.on.doc") }
-                    }
-                    Link(destination: hymn.hymnaryURL) { Label(t("hymn.hymnary"), systemImage: "safari") }
-                } label: { Image(systemName: "ellipsis") }
-                .accessibilityLabel(t("hymn.more"))
+                Button { showActions = true } label: { Image(systemName: "ellipsis") }
+                    .accessibilityLabel(t("hymn.more"))
             }
         }
         .fullScreenCover(isPresented: $showShare) { ShareCardView(hymn: hymn) }
@@ -71,7 +75,10 @@ struct HymnView: View {
         .alert(t("hymn.copied"), isPresented: $copied) { Button(t("common.ok"), role: .cancel) {} }
         .onAppear { opened() }
         .onChange(of: current) { _, _ in opened() }
-        .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
+        .onDisappear {
+            UIApplication.shared.isIdleTimerDisabled = false
+            Ads.shared.hymnClosed()
+        }
     }
 
     private func opened() {
@@ -168,7 +175,7 @@ struct HymnView: View {
     private var footer: some View {
         VStack(spacing: 12) {
             Button { showShare = true } label: {
-                Label(t("hymn.shareCard"), systemImage: "photo.on.rectangle.angled")
+                Label(t("hymn.shareCard"), systemImage: "square.and.arrow.up")
             }
             .buttonStyle(PrimaryButtonStyle())
         }
@@ -318,5 +325,46 @@ struct StoryView: View {
             .padding(.trailing, 18).padding(.top, 8)
             .accessibilityLabel(t("common.close"))
         }
+    }
+}
+
+/// The hymn's options, in a card in the middle of the screen.
+struct HymnActions: View {
+    enum Action { case share, list, copy }
+    let hymn: Hymn
+    let shareText: String
+    let pick: (Action) -> Void
+
+    var body: some View {
+        VStack(spacing: 6) {
+            VStack(spacing: 2) {
+                Text("\(hymn.number)").font(.serif(28, .semibold)).foregroundStyle(Color.brand)
+                Text(hymn.title).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+            }
+            .padding(.bottom, 10)
+            row("square.and.arrow.up", t("hymn.shareCard")) { pick(.share) }
+            ShareLink(item: shareText) { rowLabel("text.quote", t("hymn.shareText")) }
+                .buttonStyle(.plain)
+            row("text.badge.plus", t("hymn.addToList")) { pick(.list) }
+            if hymn.hasWords { row("doc.on.doc", t("hymn.copy")) { pick(.copy) } }
+            Link(destination: hymn.hymnaryURL) { rowLabel("safari", t("hymn.hymnary")) }
+                .buttonStyle(.plain)
+        }
+    }
+
+    private func row(_ symbol: String, _ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { rowLabel(symbol, title) }.buttonStyle(.plain)
+    }
+
+    private func rowLabel(_ symbol: String, _ title: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: symbol).font(.system(size: 16, weight: .semibold)).foregroundStyle(Color.brand).frame(width: 24)
+            Text(title).font(.body.weight(.medium)).foregroundStyle(Color.ink).lineLimit(1)
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 50)
+        .background(Color.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .contentShape(Rectangle())
     }
 }

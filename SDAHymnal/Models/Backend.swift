@@ -23,18 +23,41 @@ enum Backend {
     static var appBuild: String { Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1" }
 }
 
+struct AdsConfig: Equatable {
+    var enabled = false
+    var banner = true
+    var interstitial = true
+    /// About one in this many hymns closed shows a full screen ad.
+    var every = 6
+    var bannerID = ""
+    var interstitialID = ""
+
+    init() {}
+    init(_ j: [String: Any]) {
+        enabled = j["enabled"] as? Bool ?? false
+        banner = j["banner"] as? Bool ?? true
+        interstitial = j["interstitial"] as? Bool ?? true
+        every = min(20, max(2, (j["every"] as? NSNumber)?.intValue ?? 6))
+        bannerID = j["bannerId"] as? String ?? ""
+        interstitialID = j["interstitialId"] as? String ?? ""
+    }
+}
+
 /// Settings the console can change for everyone.
 struct RemoteConfig: Equatable {
     var maintenance: String?
     var announcement: String?
     var minVersion: String?
     var featuredHymn: Int?
+    /// Ads, switched on and set up from the console.
+    var ads = AdsConfig()
 
     init(_ j: [String: Any]) {
         maintenance = j["maintenance"] as? String
         announcement = j["announcement"] as? String
         minVersion = j["minVersion"] as? String
         featuredHymn = (j["featuredHymn"] as? NSNumber)?.intValue
+        if let a = j["ads"] as? [String: Any] { ads = AdsConfig(a) }
     }
     init() {}
 }

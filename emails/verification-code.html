@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Your SDA Hymnal code</title>
+<style>
+  body { margin:0; padding:0; background:#ffffff; -webkit-text-size-adjust:100%; }
+  .wrap { width:100%; background:#ffffff; }
+  .card { max-width:480px; margin:0 auto; padding:40px 28px 32px; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif; color:#1d1d1f; }
+  .eyebrow { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#0B7DB3; font-weight:600; margin:0 0 10px; }
+  h1 { font-size:22px; line-height:28px; font-weight:600; margin:0 0 12px; letter-spacing:-.01em; }
+  p { font-size:14px; line-height:21px; color:#424245; margin:0 0 16px; }
+  .code { display:inline-block; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:30px; letter-spacing:.32em; font-weight:600; color:#1d1d1f; background:#f5f5f7; border-radius:12px; padding:16px 18px 16px 26px; margin:6px 0 22px; }
+  .muted { font-size:12px; line-height:18px; color:#86868b; }
+  .rule { border:0; border-top:1px solid #e8e8ed; margin:28px 0 18px; }
+  .foot { font-size:11px; line-height:16px; color:#86868b; }
+  .foot a { color:#86868b; }
+  @media (prefers-color-scheme: dark) {
+    body, .wrap { background:#000000 !important; }
+    .card, h1, .code { color:#f5f5f7 !important; }
+    p { color:#c7c7cc !important; }
+    .code { background:#1c1c1e !important; }
+    .rule { border-top-color:#2c2c2e !important; }
+    .eyebrow { color:#3AAEE6 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <p class="eyebrow">SDA Hymnal</p>
+    <h1>Your sign in code</h1>
+    <p>Enter this code in SDA Hymnal to continue. It works for the next 10 minutes.</p>
+    <div class="code">{{otp_code}}</div>
+    <p class="muted">If you didn’t ask for this code, you can ignore this email. Someone may have typed your address by mistake.</p>
+    <hr class="rule">
+    <p class="foot">SDA Hymnal, made by Qortn.<br>You got this email because someone asked to sign in to SDA Hymnal with this address.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -84,7 +84,10 @@ final class AppState: ObservableObject {
     @Published var hymnalPath = NavigationPath()
 
     func loadConfig() async {
-        if let c = await HymnalAPI.shared.config() { config = c }
+        if let c = await HymnalAPI.shared.config() {
+            config = c
+            Ads.shared.apply(c.ads)
+        }
     }
 
     var needsUpdate: Bool {

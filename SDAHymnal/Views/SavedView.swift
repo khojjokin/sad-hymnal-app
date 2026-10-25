@@ -175,11 +175,12 @@ struct ListDetailView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         if !list.hymns.isEmpty { EditButton() }
-                        Menu {
-                            ShareLink(item: shareText(list)) { Label(t("lists.share"), systemImage: "square.and.arrow.up") }
-                            Button { name = list.name; renaming = true } label: { Label(t("lists.rename"), systemImage: "pencil") }
-                            Button(role: .destructive) { confirmDelete = true } label: { Label(t("lists.delete"), systemImage: "trash") }
-                        } label: { Image(systemName: "ellipsis") }
+                        ShareLink(item: shareText(list)) { Image(systemName: "square.and.arrow.up") }
+                            .accessibilityLabel(t("lists.share"))
+                        Button { name = list.name; renaming = true } label: { Image(systemName: "pencil") }
+                            .accessibilityLabel(t("lists.rename"))
+                        Button { confirmDelete = true } label: { Image(systemName: "trash") }
+                            .accessibilityLabel(t("lists.delete"))
                     }
                 }
                 .alert(t("lists.rename"), isPresented: $renaming) {

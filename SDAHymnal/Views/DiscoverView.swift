@@ -96,6 +96,7 @@ struct DiscoverView: View {
                     header
                     hymnsOfDay
                     verseCard
+                    AdCard()
                     if !trending.isEmpty { trendingSection }
                     if !momentHymns.isEmpty { momentSection }
                     themeSection
@@ -254,6 +255,7 @@ struct DiscoverView: View {
                         NavigationLink(value: n) {
                             HStack(spacing: 14) {
                                 Text("\(i + 1)").font(.serif(22, .bold)).foregroundStyle(i < 3 ? Color.brand : Color.inkFaint).frame(width: 26)
+                                HymnCover(hymn: h, radius: 10, showsNumber: false).frame(width: 46, height: 46)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(h.title).font(.body.weight(.medium)).foregroundStyle(Color.ink).lineLimit(1)
                                     Text("\(h.number) · \(h.section)").font(.caption).foregroundStyle(Color.inkSoft).lineLimit(1)
@@ -262,11 +264,11 @@ struct DiscoverView: View {
                                 Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(Color.inkFaint)
                             }
                             .padding(.horizontal, 16)
-                            .frame(height: 60)
+                            .frame(height: 68)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        if i < min(5, trending.count) - 1 { Divider().padding(.leading, 56) }
+                        if i < min(5, trending.count) - 1 { Divider().padding(.leading, 116) }
                     }
                 }
             }
@@ -285,15 +287,18 @@ struct DiscoverView: View {
                 HStack(spacing: 12) {
                     ForEach(momentHymns) { h in
                         NavigationLink(value: h.number) {
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text("\(h.number)").font(.serif(30, .semibold)).foregroundStyle(.white)
-                                Spacer()
-                                Text(h.title).font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1)
+                            VStack(alignment: .leading, spacing: 8) {
+                                ZStack(alignment: .topLeading) {
+                                    HymnCover(hymn: h, radius: 22, showsNumber: false)
+                                    LinearGradient(colors: momentColors.map { $0.opacity(0.45) }, startPoint: .topLeading, endPoint: .bottomTrailing)
+                                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                                    Text("\(h.number)").font(.serif(30, .semibold)).foregroundStyle(.white).padding(14)
+                                }
+                                .frame(width: 160, height: 160)
+                                Text(h.title).font(.subheadline.weight(.semibold)).foregroundStyle(Color.ink).lineLimit(1)
+                                Text(h.section).font(.caption).foregroundStyle(Color.inkSoft).lineLimit(1)
                             }
-                            .padding(16)
-                            .frame(width: 160, height: 160, alignment: .leading)
-                            .background(LinearGradient(colors: momentColors, startPoint: .topLeading, endPoint: .bottomTrailing),
-                                        in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .frame(width: 160, alignment: .leading)
                         }
                         .buttonStyle(PressableStyle())
                     }
@@ -445,13 +450,25 @@ struct DiscoverView: View {
     // MARK: More
 
     private var moreSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            SectionTitle(text: t("discover.more")).padding(.horizontal, 20).padding(.bottom, 4)
-            ForEach(more) { h in
-                NavigationLink(value: h.number) { HymnRow(hymn: h, subtitle: h.section, saved: library.isSaved(h.number)) }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 20)
+        VStack(alignment: .leading, spacing: 12) {
+            SectionTitle(text: t("discover.more")).padding(.horizontal, 20)
+            ScrollView(.horizontal) {
+                HStack(alignment: .top, spacing: 14) {
+                    ForEach(more) { h in
+                        NavigationLink(value: h.number) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HymnCover(hymn: h, radius: 20).frame(width: 150, height: 150)
+                                Text(h.title).font(.subheadline.weight(.semibold)).foregroundStyle(Color.ink).lineLimit(1)
+                                Text(h.author.isEmpty ? h.section : h.author).font(.caption).foregroundStyle(Color.inkSoft).lineLimit(1)
+                            }
+                            .frame(width: 150, alignment: .leading)
+                        }
+                        .buttonStyle(PressableStyle())
+                    }
+                }
+                .padding(.horizontal, 20)
             }
+            .scrollIndicators(.hidden)
         }
     }
 }

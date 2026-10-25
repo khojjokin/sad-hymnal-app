@@ -57,6 +57,14 @@ function publicConfig(cfg: any) {
     announcement: live ? cfg.announcement : null,
     minVersion: cfg.min_version_ios || null,
     featuredHymn: cfg.featured_hymn ?? null,
+    ads: {
+      enabled: !!cfg.ads_enabled,
+      banner: cfg.ads_banner !== false,
+      interstitial: cfg.ads_interstitial !== false,
+      every: cfg.ads_every ?? 6,
+      bannerId: cfg.ad_banner_unit || "",
+      interstitialId: cfg.ad_interstitial_unit || "",
+    },
   };
 }
 

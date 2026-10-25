@@ -14,7 +14,8 @@ async function audit(admin: Admin, action: string, targetId: string | null, deta
   await db.from("hymnal_admin_actions").insert({ admin_id: admin.id, admin_email: admin.email, action, target_id: targetId, target_email: targetEmail, detail });
 }
 
-const CONFIG_FIELDS = ["maintenance_message", "announcement", "announcement_until", "min_version_ios", "featured_hymn"];
+const CONFIG_FIELDS = ["maintenance_message", "announcement", "announcement_until", "min_version_ios", "featured_hymn",
+  "ads_enabled", "ads_banner", "ads_interstitial", "ads_every", "ad_banner_unit", "ad_interstitial_unit"];
 
 export async function consoleAction(action: string, body: any, admin: Admin): Promise<Response> {
   switch (action) {

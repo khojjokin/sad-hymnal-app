@@ -21,10 +21,12 @@ struct SettingsView: View {
                         Text(t("settings.light")).tag(Prefs.Appearance.light)
                         Text(t("settings.dark")).tag(Prefs.Appearance.dark)
                     } label: { SettingsLabel(t("settings.appearance"), symbol: "circle.lefthalf.filled", tint: Color(hex: "6366F1")) }
+                    .pickerStyle(.navigationLink)
 
                     Picker(selection: $prefs.language) {
                         ForEach(L10n.languages, id: \.self) { Text(L10n.names[$0] ?? $0).tag($0) }
                     } label: { SettingsLabel(t("settings.language"), symbol: "globe", tint: Color(hex: "0EA5E9")) }
+                    .pickerStyle(.navigationLink)
 
                     VStack(alignment: .leading, spacing: 10) {
                         SettingsLabel(t("settings.textSize"), symbol: "textformat.size", tint: Color(hex: "F97316"))
@@ -71,7 +73,7 @@ struct SettingsView: View {
                     HStack {
                         SettingsLabel(t("settings.version"), symbol: "info.circle.fill", tint: Color(hex: "94A3B8"))
                         Spacer()
-                        Text("\(Backend.appVersion) (\(Backend.appBuild))").foregroundStyle(Color.inkSoft)
+                        Text(Backend.appVersion).foregroundStyle(Color.inkSoft)
                     }
                 }
 

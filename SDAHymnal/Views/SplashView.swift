@@ -46,12 +46,6 @@ struct SplashView: View {
                 .opacity(appear ? 1 : 0)
                 .offset(y: appear ? 0 : 8)
                 Spacer()
-                HStack(spacing: 8) {
-                    Image("QortnMark").resizable().scaledToFit().frame(width: 18, height: 18)
-                    Text("Made by Qortn").font(.footnote).foregroundStyle(.white.opacity(0.6)).lineLimit(1)
-                }
-                .opacity(appear ? 1 : 0)
-                .padding(.bottom, 18)
             }
             .padding(.horizontal, 24)
         }
