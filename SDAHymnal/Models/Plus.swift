@@ -8,7 +8,11 @@ final class Plus: ObservableObject {
     static let shared = Plus()
     static let monthlyID = "com.mojo.sdahymnal.plus.monthly"
 
+    /// Plus is on when the App Store says this Apple account has it, or when the signed in account is a
+    /// Qortn admin (admins get every Plus feature free, set in the console).
     @Published private(set) var isPlus = false
+    @Published private(set) var purchased = false
+    @Published private(set) var adminGrant = false
     @Published private(set) var product: Product?
     @Published private(set) var busy = false
     @Published var error: String?
@@ -17,7 +21,9 @@ final class Plus: ObservableObject {
     private var updates: Task<Void, Never>?
 
     init() {
-        isPlus = UserDefaults.standard.bool(forKey: "hymnal.plus")
+        purchased = UserDefaults.standard.bool(forKey: "hymnal.plus")
+        adminGrant = UserDefaults.standard.bool(forKey: "hymnal.plus.admin")
+        isPlus = purchased || adminGrant
         updates = Task { [weak self] in
             for await result in Transaction.updates {
                 if case .verified(let t) = result { await t.finish() }
@@ -43,9 +49,17 @@ final class Plus: ObservableObject {
                 until = t.expirationDate
             }
         }
-        isPlus = active
+        purchased = active
+        isPlus = active || adminGrant
         renews = until
         UserDefaults.standard.set(active, forKey: "hymnal.plus")
+    }
+
+    /// Admin accounts get Plus without paying.
+    func setAdmin(_ on: Bool) {
+        adminGrant = on
+        isPlus = purchased || on
+        UserDefaults.standard.set(on, forKey: "hymnal.plus.admin")
     }
 
     func subscribe() async -> Bool {

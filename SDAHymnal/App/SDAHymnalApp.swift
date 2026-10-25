@@ -52,6 +52,9 @@ struct AppHost: View {
             } else if splash.covered {
                 SplashCover().zIndex(2)
             }
+            if let toast = app.toast, !splash.showing {
+                Toast(text: toast).transition(.scale(scale: 0.9).combined(with: .opacity)).zIndex(3)
+            }
         }
         .preferredColorScheme(splash.showing ? .dark : prefs.appearance.colorScheme)
         .task {
@@ -97,6 +100,16 @@ final class AppState: ObservableObject {
     @Published var config = RemoteConfig()
     @Published var hiddenAnnouncement: String?
     @Published var hymnalPath = NavigationPath()
+    /// A short centred message over the app (like "You're in" after signing in).
+    @Published var toast: String?
+
+    func showToast(_ text: String) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { toast = text }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.8))
+            withAnimation(.easeOut(duration: 0.3)) { if self.toast == text { self.toast = nil } }
+        }
+    }
 
     func loadConfig() async {
         if let c = await HymnalAPI.shared.config() {
@@ -148,7 +161,7 @@ struct RootView: View {
     }
 
     /// The four tabs stay alive (so each keeps its place) under one custom bar: all tabs always shown,
-    /// no sliding bubble, always full size.
+    /// no sliding bubble, and it shrinks while you scroll down, like Instagram.
     private var tabs: some View {
         ZStack {
             page(.hymnal) { HomeView() }
@@ -178,7 +191,7 @@ struct RootView: View {
         } message: {
             Text(auth.state.notices.first?.body ?? "")
         }
-        .onChange(of: app.tab) { _, tab in bar.current = tab }
+        .onChange(of: app.tab) { _, tab in bar.current = tab; bar.setCompact(false) }
     }
 
     private func page<V: View>(_ tab: AppState.Tab, @ViewBuilder _ content: () -> V) -> some View {
@@ -190,6 +203,22 @@ struct RootView: View {
             .allowsHitTesting(on)
             .accessibilityHidden(!on)
             .zIndex(on ? 1 : 0)
+    }
+}
+
+/// A small centred confirmation, gone by itself after a moment.
+struct Toast: View {
+    let text: String
+    var body: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "checkmark.circle.fill").font(.system(size: 40)).foregroundStyle(Color.good)
+            Text(text).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+        }
+        .padding(.horizontal, 30).padding(.vertical, 22)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .shadow(color: .black.opacity(0.15), radius: 24, y: 10)
+        .allowsHitTesting(false)
+        .accessibilityAddTraits(.isStaticText)
     }
 }
 

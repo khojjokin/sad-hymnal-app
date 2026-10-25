@@ -75,8 +75,12 @@ struct PlusView: View {
             Label(t("plus.active"), systemImage: "checkmark.seal.fill")
                 .font(.headline).foregroundStyle(Color(hex: "34D399"))
                 .padding(.vertical, 8)
-            Button(t("plus.manage")) { manage() }
-                .buttonStyle(PrimaryButtonStyle(tint: Color.white.opacity(0.14)))
+            if plus.purchased {
+                Button(t("plus.manage")) { manage() }
+                    .buttonStyle(PrimaryButtonStyle(tint: Color.white.opacity(0.14)))
+            } else {
+                Text(t("plus.admin")).font(.footnote).foregroundStyle(Color.white.opacity(0.7)).lineLimit(1)
+            }
         } else {
             VStack(spacing: 10) {
                 Button { buy() } label: { buyLabel }

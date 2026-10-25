@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// The bottom bar's state: hidden on a hymn (each tab counts its own hymn pages). It never shrinks.
+/// The bottom bar's state: shrunk while scrolling down, and hidden on a hymn (each tab counts its own hymn pages).
 @MainActor
 final class TabBarState: ObservableObject {
+    @Published var compact = false
     @Published var hiddenIn: [AppState.Tab: Int] = [:]
     @Published var current: AppState.Tab = .hymnal
 
@@ -10,6 +11,11 @@ final class TabBarState: ObservableObject {
 
     func hide(in tab: AppState.Tab) { hiddenIn[tab, default: 0] += 1 }
     func show(in tab: AppState.Tab) { hiddenIn[tab] = max(0, (hiddenIn[tab] ?? 0) - 1) }
+
+    func setCompact(_ value: Bool) {
+        guard compact != value else { return }
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) { compact = value }
+    }
 }
 
 private struct HostTabKey: EnvironmentKey { static let defaultValue: AppState.Tab = .hymnal }
@@ -21,7 +27,8 @@ extension EnvironmentValues {
     }
 }
 
-/// The app's bottom bar: every tab always showing at full size, the chosen one in sea blue (no sliding bubble).
+/// The app's bottom bar: every tab always showing, the chosen one in sea blue (no sliding bubble).
+/// Scrolling down shrinks it to icons only; scrolling up brings the labels back.
 struct HymnalTabBar: View {
     @EnvironmentObject private var app: AppState
     @EnvironmentObject private var bar: TabBarState
@@ -47,6 +54,7 @@ struct HymnalTabBar: View {
     }
 
     var body: some View {
+        let compact = bar.compact
         HStack(spacing: 0) {
             ForEach(items) { item in
                 let on = app.tab == item.tab
@@ -59,18 +67,22 @@ struct HymnalTabBar: View {
                         tx.disablesAnimations = true
                         withTransaction(tx) { app.tab = item.tab }
                     }
+                    bar.setCompact(false)
                 } label: {
                     VStack(spacing: 3) {
                         Image(systemName: on ? item.filled : item.symbol)
-                            .font(.system(size: 21, weight: on ? .semibold : .regular))
+                            .font(.system(size: compact ? 19 : 21, weight: on ? .semibold : .regular))
                             .frame(height: 24)
-                        Text(item.title)
-                            .font(.system(size: 10.5, weight: on ? .semibold : .medium))
-                            .lineLimit(1)
+                        if !compact {
+                            Text(item.title)
+                                .font(.system(size: 10.5, weight: on ? .semibold : .medium))
+                                .lineLimit(1)
+                                .transition(.opacity)
+                        }
                     }
                     .foregroundStyle(on ? Color.brand : Color.inkSoft)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 60)
+                    .frame(height: compact ? 46 : 60)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -79,16 +91,40 @@ struct HymnalTabBar: View {
             }
         }
         .padding(.horizontal, 6)
-        .glass(30)
+        .glass(compact ? 23 : 30)
         .shadow(color: .black.opacity(0.12), radius: 16, y: 6)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, compact ? 64 : 14)
         .padding(.bottom, 4)
     }
 }
 
+/// Reports scrolling to the bottom bar: down by a little shrinks it, up by a little brings it back.
+struct TracksScroll: ViewModifier {
+    @EnvironmentObject private var bar: TabBarState
+    @State private var anchor: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.onScrollGeometryChange(for: CGFloat.self) { geo in
+                geo.contentOffset.y + geo.contentInsets.top
+            } action: { _, y in
+                if y < 24 {
+                    bar.setCompact(false)
+                    anchor = y
+                } else if bar.compact {
+                    if y > anchor { anchor = y } else if anchor - y > 28 { bar.setCompact(false); anchor = y }
+                } else {
+                    if y < anchor { anchor = y } else if y - anchor > 28 { bar.setCompact(true); anchor = y }
+                }
+            }
+        } else {
+            content
+        }
+    }
+}
+
 extension View {
-    /// Kept so screens compile unchanged; the bar no longer reacts to scrolling.
-    func tracksScroll() -> some View { self }
+    func tracksScroll() -> some View { modifier(TracksScroll()) }
 
     /// Hides the bottom bar while this screen shows (used by the hymn page).
     func hidesTabBar() -> some View { modifier(HidesTabBar()) }

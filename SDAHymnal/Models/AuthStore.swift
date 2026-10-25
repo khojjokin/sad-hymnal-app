@@ -29,6 +29,7 @@ final class AuthStore: ObservableObject {
     func update(from user: User?) {
         guard let user else {
             if currentUser != nil { currentUser = nil; state = MemberState() }
+            Plus.shared.setAdmin(false)
             return
         }
         let email = user.primaryEmailAddress?.emailAddress ?? ""
@@ -49,7 +50,10 @@ final class AuthStore: ObservableObject {
     /// Registers the member with the hymnal server and reads their account state and notices.
     func refresh() async {
         guard let user = currentUser, let token = await validToken() else { return }
-        if let s = try? await api.me(token: token, provider: user.provider) { state = s }
+        if let s = try? await api.me(token: token, provider: user.provider) {
+            state = s
+            Plus.shared.setAdmin(s.isAdmin)
+        }
     }
 
     func acknowledge(_ notice: MemberNotice) async {
@@ -61,6 +65,7 @@ final class AuthStore: ObservableObject {
         try? await Clerk.shared.auth.signOut()
         currentUser = nil
         state = MemberState()
+        Plus.shared.setAdmin(false)
     }
 
     /// Deletes the account's saved hymns from the server, then the Clerk account itself.
@@ -71,5 +76,6 @@ final class AuthStore: ObservableObject {
         _ = try await Clerk.shared.user?.delete()
         currentUser = nil
         state = MemberState()
+        Plus.shared.setAdmin(false)
     }
 }

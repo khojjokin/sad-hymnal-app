@@ -69,6 +69,7 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
             }
+            .tracksScroll()
             .background(Color.bg)
             .navigationTitle(t("tab.settings"))
             .fullScreenCover(isPresented: $showAuth) { AuthView() }

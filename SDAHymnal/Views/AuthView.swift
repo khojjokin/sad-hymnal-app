@@ -3,6 +3,7 @@ import SwiftUI
 /// Create an account or sign in, full screen: email, then a 6-digit code. Optional; the app works without it.
 struct AuthView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var app: AppState
     @StateObject private var flow = AuthFlow()
     @FocusState private var focus: Field?
     enum Field { case email, first, last, code }
@@ -56,7 +57,9 @@ struct AuthView: View {
             case .name: focus = .first
             case .code: focus = .code
             case .done:
-                Task { try? await Task.sleep(for: .seconds(1.2)); dismiss() }
+                // Straight back into the app, with a quick "You're in" over it.
+                app.showToast(t("auth.toast"))
+                dismiss()
             case .email: break
             }
         }
