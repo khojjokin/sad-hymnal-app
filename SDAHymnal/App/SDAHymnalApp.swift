@@ -12,7 +12,6 @@ struct SDAHymnalApp: App {
     @StateObject private var bar = TabBarState()
     init() {
         Clerk.configure(publishableKey: Backend.clerkPublishableKey)
-        Task.detached(priority: .background) { await Backend.checkLiveSignIn() }
         UNUserNotificationCenter.current().delegate = NotificationRouter.shared
     }
 

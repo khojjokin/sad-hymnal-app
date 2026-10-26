@@ -5,14 +5,13 @@ import { config, db, json } from "./shared.ts";
 
 // SDA Hymnal API. Checks the Clerk session token itself (Supabase JWT checking is off), then reads and
 // writes the hymnal_* tables with the service role.
-// - Hymnal users sign in with SDA Hymnal's Clerk (production clerk.hymnal.qortyn.com, dev for test builds).
+// - Hymnal users sign in with SDA Hymnal's production Clerk (clerk.hymnal.qortyn.com) only.
 // - The Qortn Console Manager signs in with the Qortn Clerk (clerk.qortyn.com); its admins manage the
 //   hymnal through "console.*" actions.
 // - "config", "track", "trending" and "words" also work without signing in, because accounts are optional in the hymnal.
 
 const APP_ISSUERS: Record<string, ReturnType<typeof createRemoteJWKSet>> = {
   "https://clerk.hymnal.qortyn.com": createRemoteJWKSet(new URL("https://clerk.hymnal.qortyn.com/.well-known/jwks.json")),
-  "https://becoming-albacore-6794.clerk.accounts.dev": createRemoteJWKSet(new URL("https://becoming-albacore-6794.clerk.accounts.dev/.well-known/jwks.json")),
 };
 const CONSOLE_ISSUERS: Record<string, ReturnType<typeof createRemoteJWKSet>> = {
   "https://clerk.qortyn.com": createRemoteJWKSet(new URL("https://clerk.qortyn.com/.well-known/jwks.json")),

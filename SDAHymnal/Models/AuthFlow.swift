@@ -169,15 +169,10 @@ final class AuthFlow: ObservableObject {
         }
     }
 
-    /// Apple: the native sheet on the live service; the web flow on the development one (which has no Apple key for this app).
+    /// Apple: the native Sign in with Apple sheet.
     func continueWithApple() async {
         await run {
-            let result: TransferFlowResult
-            if Backend.useLiveSignIn {
-                result = try await Clerk.shared.auth.signInWithApple()
-            } else {
-                result = try await Clerk.shared.auth.signInWithOAuth(provider: .apple)
-            }
+            let result = try await Clerk.shared.auth.signInWithApple()
             try self.finish(result)
         }
     }

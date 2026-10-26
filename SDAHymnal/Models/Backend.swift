@@ -8,25 +8,8 @@ enum Backend {
     static let url = URL(string: "https://fjnifvugmbtajelmiuuh.supabase.co")!
     static let publishableKey = "sb_publishable_CEwinwr0mVRMfG8qtbpQcA_lZHg_nfw"
 
-    /// Sign in uses SDA Hymnal's production Clerk (clerk.hymnal.qortyn.com) as soon as that domain answers.
-    /// Each launch checks it in the background and remembers the answer for the next launch, so the app moves
-    /// to production by itself once the DNS records are live, without a new build. Until then it stays on the
-    /// development instance so sign in keeps working.
-    static let liveKey = "pk_live_Y2xlcmsuaHltbmFsLnFvcnR5bi5jb20k"
-    static let devKey = "pk_test_YmVjb21pbmctYWxiYWNvcmUtNjc5NC5jbGVyay5hY2NvdW50cy5kZXYk"
-    private static let liveFlag = "hymnal.clerk.live"
-    static let useLiveSignIn: Bool = UserDefaults.standard.bool(forKey: liveFlag)
-    static var clerkPublishableKey: String { useLiveSignIn ? liveKey : devKey }
-
-    /// Asks the production sign in domain if it's ready, and saves the answer for the next launch.
-    static func checkLiveSignIn() async {
-        var req = URLRequest(url: URL(string: "https://clerk.hymnal.qortyn.com/v1/environment")!)
-        req.timeoutInterval = 8
-        guard let (_, res) = try? await URLSession.shared.data(for: req), let http = res as? HTTPURLResponse else { return }
-        // Any real answer from Clerk (even "unauthorised") means DNS and SSL are live.
-        let live = (200..<500).contains(http.statusCode)
-        UserDefaults.standard.set(live, forKey: liveFlag)
-    }
+    /// Sign in always uses SDA Hymnal's production Clerk (clerk.hymnal.qortyn.com). There is no development fallback.
+    static let clerkPublishableKey = "pk_live_Y2xlcmsuaHltbmFsLnFvcnR5bi5jb20k"
 
     /// The App Store page.
     static let appStoreURL = URL(string: "https://apps.apple.com/app/id6822432398")!
